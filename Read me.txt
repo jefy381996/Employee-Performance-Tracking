@@ -1,0 +1,31 @@
+# Employee Performance Tracker (Python + NumPy)
+
+This is a simple Python project designed to help HR departments track employee performance over the year. It supports adding new employees, recording monthly ratings, calculating averages, grading performance, and saving/loading data.
+
+## ?? Features
+- Add monthly performance ratings for employees
+- Calculate total-employee and average-employee Performance
+- Identify employee with ratings greater than 80
+- Identify employee with ratings lower than 40
+- Assign performance grades
+- Rank All employees
+- Save and load data to an external .txt file
+
+## ?? Technologies Used
+- Python
+- NumPy
+- datetime
+
+## ?? Sample Output
+> Screenshot in `output.jpg` (or see demo in comments on LinkedIn post)
+
+## ?? How to Run
+1. Clone the repo
+2. Run `main.py` in any Python environment (Python 3.8+)
+3. Follow the prompts to enter ratings or load from file
+
+## ?? Contributing
+Feel free to fork and improve! Add features like graphical analysis, CSV export, or web integration.
+
+## ?? License
+MIT License

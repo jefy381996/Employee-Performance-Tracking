@@ -125,9 +125,17 @@ class StudentResultManagement {
         ) $charset_collate;";
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($students_sql);
-        dbDelta($results_sql);
-        dbDelta($settings_sql);
+        
+        $students_result = dbDelta($students_sql);
+        $results_result = dbDelta($results_sql);
+        $settings_result = dbDelta($settings_sql);
+        
+        // Log any database creation issues
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('SRM Plugin: Students table creation result: ' . print_r($students_result, true));
+            error_log('SRM Plugin: Results table creation result: ' . print_r($results_result, true));
+            error_log('SRM Plugin: Settings table creation result: ' . print_r($settings_result, true));
+        }
     }
     
     /**

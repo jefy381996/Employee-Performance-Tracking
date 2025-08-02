@@ -8,39 +8,103 @@ $student_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $message = '';
 $error = '';
 
+// Handle success messages from redirects
+if (isset($_GET['message'])) {
+    switch ($_GET['message']) {
+        case 'added':
+            $message = __('Student added successfully!', 'student-result-management');
+            break;
+        case 'updated':
+            $message = __('Student updated successfully!', 'student-result-management');
+            break;
+        case 'deleted':
+            $message = __('Student deleted successfully!', 'student-result-management');
+            break;
+    }
+}
+
 // Handle form submissions
 if ($_POST) {
-    if (!wp_verify_nonce($_POST['srm_nonce'], 'srm_student_action')) {
+    if (!isset($_POST['srm_nonce']) || !wp_verify_nonce($_POST['srm_nonce'], 'srm_student_action')) {
         $error = __('Security check failed.', 'student-result-management');
     } else {
         $students_table = $wpdb->prefix . 'srm_students';
         
-        $student_data = array(
-            'roll_number' => sanitize_text_field($_POST['roll_number']),
-            'first_name' => sanitize_text_field($_POST['first_name']),
-            'last_name' => sanitize_text_field($_POST['last_name']),
-            'email' => sanitize_email($_POST['email']),
-            'phone' => sanitize_text_field($_POST['phone']),
-            'class' => sanitize_text_field($_POST['class']),
-            'section' => sanitize_text_field($_POST['section']),
-            'date_of_birth' => sanitize_text_field($_POST['date_of_birth'])
-        );
+        // Validate required fields
+        $required_fields = array('roll_number', 'first_name', 'last_name', 'class');
+        $validation_errors = array();
         
-        if ($action === 'add') {
-            $result = $wpdb->insert($students_table, $student_data);
-            if ($result) {
-                $message = __('Student added successfully!', 'student-result-management');
-                $action = 'list';
-            } else {
-                $error = __('Error adding student.', 'student-result-management');
+        foreach ($required_fields as $field) {
+            if (empty($_POST[$field])) {
+                $validation_errors[] = sprintf(__('%s is required.', 'student-result-management'), ucfirst(str_replace('_', ' ', $field)));
             }
-        } elseif ($action === 'edit' && $student_id) {
-            $result = $wpdb->update($students_table, $student_data, array('id' => $student_id));
-            if ($result !== false) {
-                $message = __('Student updated successfully!', 'student-result-management');
-                $action = 'list';
-            } else {
-                $error = __('Error updating student.', 'student-result-management');
+        }
+        
+        if (!empty($validation_errors)) {
+            $error = implode(' ', $validation_errors);
+        } else {
+            // Prepare student data
+            $student_data = array(
+                'roll_number' => sanitize_text_field($_POST['roll_number']),
+                'first_name' => sanitize_text_field($_POST['first_name']),
+                'last_name' => sanitize_text_field($_POST['last_name']),
+                'email' => !empty($_POST['email']) ? sanitize_email($_POST['email']) : '',
+                'phone' => sanitize_text_field($_POST['phone']),
+                'class' => sanitize_text_field($_POST['class']),
+                'section' => sanitize_text_field($_POST['section']),
+                'date_of_birth' => !empty($_POST['date_of_birth']) ? sanitize_text_field($_POST['date_of_birth']) : null
+            );
+            
+            // Remove empty values except for required fields
+            $student_data = array_filter($student_data, function($value) {
+                return $value !== '';
+            });
+            
+            if ($action === 'add') {
+                // Check if roll number already exists
+                $existing = $wpdb->get_var($wpdb->prepare(
+                    "SELECT id FROM $students_table WHERE roll_number = %s",
+                    $student_data['roll_number']
+                ));
+                
+                if ($existing) {
+                    $error = __('A student with this roll number already exists.', 'student-result-management');
+                } else {
+                    $result = $wpdb->insert($students_table, $student_data);
+                    if ($result) {
+                        $message = __('Student added successfully!', 'student-result-management');
+                        $action = 'list';
+                        
+                        // Redirect to prevent form resubmission
+                        wp_redirect(admin_url('admin.php?page=srm-students&message=added'));
+                        exit;
+                    } else {
+                        $error = __('Error adding student: ', 'student-result-management') . $wpdb->last_error;
+                    }
+                }
+            } elseif ($action === 'edit' && $student_id) {
+                // Check if roll number already exists for other students
+                $existing = $wpdb->get_var($wpdb->prepare(
+                    "SELECT id FROM $students_table WHERE roll_number = %s AND id != %d",
+                    $student_data['roll_number'],
+                    $student_id
+                ));
+                
+                if ($existing) {
+                    $error = __('A student with this roll number already exists.', 'student-result-management');
+                } else {
+                    $result = $wpdb->update($students_table, $student_data, array('id' => $student_id));
+                    if ($result !== false) {
+                        $message = __('Student updated successfully!', 'student-result-management');
+                        $action = 'list';
+                        
+                        // Redirect to prevent form resubmission
+                        wp_redirect(admin_url('admin.php?page=srm-students&message=updated'));
+                        exit;
+                    } else {
+                        $error = __('Error updating student: ', 'student-result-management') . $wpdb->last_error;
+                    }
+                }
             }
         }
     }
@@ -50,9 +114,10 @@ if ($_POST) {
 if ($action === 'delete' && $student_id && wp_verify_nonce($_GET['_wpnonce'], 'delete_student_' . $student_id)) {
     $result = $wpdb->delete($wpdb->prefix . 'srm_students', array('id' => $student_id));
     if ($result) {
-        $message = __('Student deleted successfully!', 'student-result-management');
+        wp_redirect(admin_url('admin.php?page=srm-students&message=deleted'));
+        exit;
     } else {
-        $error = __('Error deleting student.', 'student-result-management');
+        $error = __('Error deleting student: ', 'student-result-management') . $wpdb->last_error;
     }
     $action = 'list';
 }

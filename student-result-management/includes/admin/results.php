@@ -1,6 +1,8 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
+// Remove output buffering - not needed
+
 global $wpdb;
 
 $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'list';

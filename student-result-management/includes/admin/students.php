@@ -3,28 +3,14 @@ if (!defined('ABSPATH')) exit;
 
 global $wpdb;
 
+// Initialize variables
 $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'list';
 $student_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $message = '';
 $error = '';
 
-// Handle success messages from redirects
-if (isset($_GET['message'])) {
-    switch ($_GET['message']) {
-        case 'added':
-            $message = __('Student added successfully!', 'student-result-management');
-            break;
-        case 'updated':
-            $message = __('Student updated successfully!', 'student-result-management');
-            break;
-        case 'deleted':
-            $message = __('Student deleted successfully!', 'student-result-management');
-            break;
-    }
-}
-
 // Handle form submissions
-if ($_POST) {
+if ($_POST && isset($_POST['srm_nonce'])) {
     if (!isset($_POST['srm_nonce']) || !wp_verify_nonce($_POST['srm_nonce'], 'srm_student_action')) {
         $error = __('Security check failed.', 'student-result-management');
     } else {
@@ -75,9 +61,7 @@ if ($_POST) {
                         $message = __('Student added successfully!', 'student-result-management');
                         $action = 'list';
                         
-                        // Redirect to prevent form resubmission
-                        wp_redirect(admin_url('admin.php?page=srm-students&message=added'));
-                        exit;
+
                     } else {
                         $error = __('Error adding student: ', 'student-result-management') . $wpdb->last_error;
                     }
@@ -97,10 +81,6 @@ if ($_POST) {
                     if ($result !== false) {
                         $message = __('Student updated successfully!', 'student-result-management');
                         $action = 'list';
-                        
-                        // Redirect to prevent form resubmission
-                        wp_redirect(admin_url('admin.php?page=srm-students&message=updated'));
-                        exit;
                     } else {
                         $error = __('Error updating student: ', 'student-result-management') . $wpdb->last_error;
                     }
@@ -111,11 +91,10 @@ if ($_POST) {
 }
 
 // Handle delete action
-if ($action === 'delete' && $student_id && wp_verify_nonce($_GET['_wpnonce'], 'delete_student_' . $student_id)) {
+if ($action === 'delete' && $student_id && isset($_GET['_wpnonce']) && wp_verify_nonce($_GET['_wpnonce'], 'delete_student_' . $student_id)) {
     $result = $wpdb->delete($wpdb->prefix . 'srm_students', array('id' => $student_id));
     if ($result) {
-        wp_redirect(admin_url('admin.php?page=srm-students&message=deleted'));
-        exit;
+        $message = __('Student deleted successfully!', 'student-result-management');
     } else {
         $error = __('Error deleting student: ', 'student-result-management') . $wpdb->last_error;
     }
@@ -388,3 +367,4 @@ if ($action === 'edit' && $student_id) {
         </div>
     <?php endif; ?>
 </div>
+

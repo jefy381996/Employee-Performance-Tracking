@@ -419,59 +419,56 @@ class StudentResultManagement {
         );
         
         // Premium Features
-        add_submenu_page(
-            'student-results',
-            __('CSV Import/Export', 'student-result-management'),
-            __('CSV Import/Export', 'student-result-management'),
-            'manage_options',
-            'srm-csv-import-export',
-            array($this, 'admin_csv_import_export_page')
-        );
+        // Premium features - only show to users with premium access
+        $license_manager = new SRM_License_Manager();
+        if ($license_manager->has_premium_access()) {
+            add_submenu_page(
+                'student-results',
+                __('CSV Import/Export', 'student-result-management'),
+                __('CSV Import/Export', 'student-result-management'),
+                'manage_options',
+                'srm-csv-import-export',
+                array($this, 'admin_csv_import_export_page')
+            );
+            
+            add_submenu_page(
+                'student-results',
+                __('Advanced Analytics', 'student-result-management'),
+                __('Advanced Analytics', 'student-result-management'),
+                'manage_options',
+                'srm-advanced-analytics',
+                array($this, 'admin_advanced_analytics_page')
+            );
+            
+            add_submenu_page(
+                'student-results',
+                __('Email Notifications', 'student-result-management'),
+                __('Email Notifications', 'student-result-management'),
+                'manage_options',
+                'srm-email-notifications',
+                array($this, 'admin_email_notifications_page')
+            );
+            
+            add_submenu_page(
+                'student-results',
+                __('Data Backup & Restore', 'student-result-management'),
+                __('Data Backup & Restore', 'student-result-management'),
+                'manage_options',
+                'srm-data-backup-restore',
+                array($this, 'admin_data_backup_restore_page')
+            );
+            
+            add_submenu_page(
+                'student-results',
+                __('Custom Templates', 'student-result-management'),
+                __('Custom Templates', 'student-result-management'),
+                'manage_options',
+                'srm-custom-templates',
+                array($this, 'admin_custom_templates_page')
+            );
+        }
         
-        add_submenu_page(
-            'student-results',
-            __('Advanced Analytics', 'student-result-management'),
-            __('Advanced Analytics', 'student-result-management'),
-            'manage_options',
-            'srm-advanced-analytics',
-            array($this, 'admin_advanced_analytics_page')
-        );
-        
-        add_submenu_page(
-            'student-results',
-            __('Email Notifications', 'student-result-management'),
-            __('Email Notifications', 'student-result-management'),
-            'manage_options',
-            'srm-email-notifications',
-            array($this, 'admin_email_notifications_page')
-        );
-        
-        add_submenu_page(
-            'student-results',
-            __('Data Backup & Restore', 'student-result-management'),
-            __('Data Backup & Restore', 'student-result-management'),
-            'manage_options',
-            'srm-data-backup-restore',
-            array($this, 'admin_data_backup_restore_page')
-        );
-        
-        add_submenu_page(
-            'student-results',
-            __('Custom Templates', 'student-result-management'),
-            __('Custom Templates', 'student-result-management'),
-            'manage_options',
-            'srm-custom-templates',
-            array($this, 'admin_custom_templates_page')
-        );
-        
-        add_submenu_page(
-            'student-results',
-            __('Import/Export', 'student-result-management'),
-            __('Import/Export', 'student-result-management'),
-            'manage_options',
-            'srm-import-export',
-            array($this, 'admin_import_export_page')
-        );
+
         
         add_submenu_page(
             'student-results',

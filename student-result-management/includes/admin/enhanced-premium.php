@@ -56,13 +56,8 @@ $license_key = $license_manager->get_license_key();
         <?php if ($is_owner): ?>
             <!-- Owner Features -->
             <div class="srm-owner-features">
-                <div class="notice notice-success">
-                    <h3><?php _e('🎉 Congratulations! You are the Plugin Owner', 'student-result-management'); ?></h3>
-                    <p><?php _e('As the plugin owner, you have full access to all premium features without any restrictions.', 'student-result-management'); ?></p>
-                </div>
-                
                 <div class="srm-owner-info">
-                    <h3><?php _e('Owner Information', 'student-result-management'); ?></h3>
+                    <h3><?php _e('Owner Access', 'student-result-management'); ?></h3>
                     <ul>
                         <li><?php _e('Full access to all premium features', 'student-result-management'); ?></li>
                         <li><?php _e('Can manage license keys for other users', 'student-result-management'); ?></li>

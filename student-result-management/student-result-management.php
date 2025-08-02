@@ -41,6 +41,9 @@ class StudentResultManagement {
         add_action('wp_ajax_srm_generate_pdf', array($this, 'ajax_generate_pdf'));
         add_action('wp_ajax_srm_create_tables', array($this, 'ajax_create_tables'));
         
+        // Include feature control system
+        require_once SRM_PLUGIN_PATH . 'includes/admin/feature-control.php';
+        
         // Shortcode for frontend result display
         add_shortcode('student_result_lookup', array($this, 'result_lookup_shortcode'));
     }
@@ -131,11 +134,31 @@ class StudentResultManagement {
             PRIMARY KEY (id)
         ) $charset_collate;";
         
+        // Payments table
+        $payments_table = $wpdb->prefix . 'srm_payments';
+        $payments_sql = "CREATE TABLE $payments_table (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            transaction_id varchar(100) NOT NULL UNIQUE,
+            amount decimal(10,2) NOT NULL,
+            currency varchar(10) NOT NULL DEFAULT 'USD',
+            payment_method varchar(50) NOT NULL,
+            customer_email varchar(100) NOT NULL,
+            customer_name varchar(100) NOT NULL,
+            status varchar(20) NOT NULL DEFAULT 'pending',
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY transaction_id (transaction_id),
+            KEY status (status),
+            KEY customer_email (customer_email)
+        ) $charset_collate;";
+        
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         
         $students_result = dbDelta($students_sql);
         $results_result = dbDelta($results_sql);
         $settings_result = dbDelta($settings_sql);
+        $payments_result = dbDelta($payments_sql);
         
         // Log any database creation issues
         if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -157,7 +180,8 @@ class StudentResultManagement {
         $tables = array(
             'students' => $wpdb->prefix . 'srm_students',
             'results' => $wpdb->prefix . 'srm_results',
-            'settings' => $wpdb->prefix . 'srm_settings'
+            'settings' => $wpdb->prefix . 'srm_settings',
+            'payments' => $wpdb->prefix . 'srm_payments'
         );
         
         foreach ($tables as $name => $table) {
@@ -421,23 +445,10 @@ class StudentResultManagement {
      * Check if current user is premium user or plugin owner
      */
     private function is_premium_user() {
-        $current_user_id = get_current_user_id();
-        $plugin_owner = get_option('srm_plugin_owner');
-        
-        // Plugin owner always has premium access
-        if ($current_user_id == $plugin_owner) {
-            return true;
-        }
-        
-        // Check license status
-        global $wpdb;
-        $settings_table = $wpdb->prefix . 'srm_settings';
-        $license_status = $wpdb->get_var($wpdb->prepare(
-            "SELECT setting_value FROM $settings_table WHERE setting_name = %s",
-            'license_status'
-        ));
-        
-        return $license_status === 'premium';
+        // Include license manager
+        require_once SRM_PLUGIN_PATH . 'includes/admin/license-manager.php';
+        $license_manager = new SRM_License_Manager();
+        return $license_manager->has_premium_access();
     }
     
     /**
@@ -472,14 +483,14 @@ class StudentResultManagement {
      * Admin settings page
      */
     public function admin_settings_page() {
-        include SRM_PLUGIN_PATH . 'includes/admin/settings.php';
+        include SRM_PLUGIN_PATH . 'includes/admin/enhanced-settings.php';
     }
     
     /**
      * Admin premium page
      */
     public function admin_premium_page() {
-        include SRM_PLUGIN_PATH . 'includes/admin/premium.php';
+        include SRM_PLUGIN_PATH . 'includes/admin/enhanced-premium.php';
     }
     
     /**

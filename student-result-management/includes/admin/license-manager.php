@@ -38,13 +38,14 @@ class SRM_License_Manager {
         $current_user_id = get_current_user_id();
         $plugin_owner = get_option('srm_plugin_owner');
         
-        // If no plugin owner is set, check if current user has owner key
-        if (empty($plugin_owner)) {
-            $license_key = $this->get_license_key();
-            if ($license_key === $this->owner_key) {
+        // Check if current user has the owner key activated
+        $license_key = $this->get_license_key();
+        if ($license_key === $this->owner_key) {
+            // Set this user as owner if not already set
+            if (empty($plugin_owner)) {
                 update_option('srm_plugin_owner', $current_user_id);
-                $plugin_owner = $current_user_id;
             }
+            return ($current_user_id == $plugin_owner);
         }
         
         return ($current_user_id == $plugin_owner);

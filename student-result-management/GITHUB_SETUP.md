@@ -81,9 +81,10 @@ student-result-management/
 ## 🔑 Key Features Implemented
 
 ### ✅ Simple License System
-- **Owner Key**: `Bismillah^512`
+- **Owner Key**: `Bismillah^512` (required even for owner)
 - **Premium Keys**: Custom keys you provide
 - **Free Users**: Limited to 20 students
+- **No Payment System**: Completely removed
 
 ### ✅ Student Limit Feature
 - Free users can only add 20 students
@@ -109,8 +110,8 @@ student-result-management/
 
 ### For Plugin Owner
 1. Install plugin
-2. Enter owner key: `Bismillah^512`
-3. Full access to all features
+2. Enter owner key: `Bismillah^512` in Premium Features page
+3. Full access to all features + license key management
 4. Can provide license keys to others
 
 ### For Premium Users

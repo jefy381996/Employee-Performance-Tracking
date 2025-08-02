@@ -10,17 +10,18 @@ This plugin now uses a simple license key system for premium feature access. No 
 - **Owner Key**: `Bismillah^512`
 - **Access**: Full admin access to all features
 - **Usage**: Enter this key to become the plugin owner
+- **Required**: Even the plugin owner must enter this key to get access
 
 ### Premium License Keys
 - **Format**: Alphanumeric with special characters (8-32 characters)
 - **Validation**: Must contain at least one letter and one number
-- **Access**: All premium features unlocked
+- **Access**: All premium features unlocked (but not owner access)
 - **Management**: Plugin owner can add/remove valid keys
 - **Usage Tracking**: System tracks which keys are in use
 
 ### Free Users
 - **Access**: Basic features only
-- **Features**: Student management, result management, basic dashboard
+- **Features**: Student management (20 max), result management, basic dashboard
 
 ## 🚀 How It Works
 
@@ -30,7 +31,7 @@ This plugin now uses a simple license key system for premium feature access. No 
 3. Enter the owner key: `Bismillah^512`
 4. Click "Activate License"
 5. You now have full owner access
-6. Go to **Student Results > License Keys** to manage valid keys
+6. Go to **Student Results > License Keys** to manage valid keys for other users
 
 ### 2. Premium User Setup
 1. Contact the plugin owner to request a license key
@@ -125,20 +126,20 @@ student-result-management/
 
 ### For Plugin Owner
 1. Install plugin
-2. Enter owner key: `Bismillah^512`
-3. Full access to all features
+2. Enter owner key: `Bismillah^512` in Premium Features page
+3. Full access to all features + license key management
 4. Can provide license keys to others
 
 ### For Premium Users
 1. Contact plugin owner for license key
 2. Enter license key in Premium Features page
-3. Access all premium features
-4. Can deactivate license if needed
+3. Access all premium features + unlimited students
+4. No owner access (cannot manage license keys)
 
 ### For Free Users
 1. Use basic features only
-2. See upgrade prompts for premium features
-3. Contact owner to request license key
+2. Limited to 20 students
+3. See upgrade prompts for premium features
 
 ## 🔒 Security Features
 

@@ -151,8 +151,7 @@ $passing_marks = get_option('srm_passing_marks', 40);
                 </table>
             </div>
             
-
-                
+            <?php if ($is_owner): ?>
                 <!-- License Management (Owner Only) -->
                 <div class="srm-settings-section">
                     <h2><?php _e('License Management', 'student-result-management'); ?></h2>

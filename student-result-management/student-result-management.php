@@ -34,10 +34,12 @@ class StudentResultManagement {
         add_action('admin_menu', array($this, 'admin_menu'));
         add_action('admin_enqueue_scripts', array($this, 'admin_scripts'));
         add_action('wp_enqueue_scripts', array($this, 'frontend_scripts'));
+        add_action('admin_notices', array($this, 'admin_notices'));
         add_action('wp_ajax_srm_get_result', array($this, 'ajax_get_result'));
         add_action('wp_ajax_nopriv_srm_get_result', array($this, 'ajax_get_result'));
         add_action('wp_ajax_srm_upload_csv', array($this, 'ajax_upload_csv'));
         add_action('wp_ajax_srm_generate_pdf', array($this, 'ajax_generate_pdf'));
+        add_action('wp_ajax_srm_create_tables', array($this, 'ajax_create_tables'));
         
         // Shortcode for frontend result display
         add_shortcode('student_result_lookup', array($this, 'result_lookup_shortcode'));
@@ -47,8 +49,13 @@ class StudentResultManagement {
      * Plugin activation
      */
     public function activate() {
+        // Force table creation
         $this->create_tables();
         $this->set_default_options();
+        
+        // Verify tables were created
+        $this->verify_tables();
+        
         flush_rewrite_rules();
     }
     
@@ -135,6 +142,137 @@ class StudentResultManagement {
             error_log('SRM Plugin: Students table creation result: ' . print_r($students_result, true));
             error_log('SRM Plugin: Results table creation result: ' . print_r($results_result, true));
             error_log('SRM Plugin: Settings table creation result: ' . print_r($settings_result, true));
+        }
+        
+        // Force table creation if dbDelta didn't work
+        $this->force_create_tables_if_missing();
+    }
+    
+    /**
+     * Force create tables if they don't exist
+     */
+    private function force_create_tables_if_missing() {
+        global $wpdb;
+        
+        $tables = array(
+            'students' => $wpdb->prefix . 'srm_students',
+            'results' => $wpdb->prefix . 'srm_results',
+            'settings' => $wpdb->prefix . 'srm_settings'
+        );
+        
+        foreach ($tables as $name => $table) {
+            $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
+            if (!$exists) {
+                $this->create_individual_table($name);
+            }
+        }
+    }
+    
+    /**
+     * Create individual table with direct SQL
+     */
+    private function create_individual_table($table_name) {
+        global $wpdb;
+        
+        $charset_collate = $wpdb->get_charset_collate();
+        
+        switch ($table_name) {
+            case 'students':
+                $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}srm_students (
+                    id int(11) NOT NULL AUTO_INCREMENT,
+                    roll_number varchar(50) NOT NULL,
+                    first_name varchar(100) NOT NULL,
+                    last_name varchar(100) NOT NULL,
+                    email varchar(100) DEFAULT NULL,
+                    phone varchar(20) DEFAULT NULL,
+                    class varchar(50) NOT NULL,
+                    section varchar(10) DEFAULT NULL,
+                    date_of_birth date DEFAULT NULL,
+                    profile_image varchar(255) DEFAULT NULL,
+                    created_at datetime DEFAULT CURRENT_TIMESTAMP,
+                    updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    PRIMARY KEY (id),
+                    UNIQUE KEY roll_number (roll_number),
+                    KEY class_section (class, section)
+                ) $charset_collate";
+                break;
+                
+            case 'results':
+                $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}srm_results (
+                    id int(11) NOT NULL AUTO_INCREMENT,
+                    student_id int(11) NOT NULL,
+                    exam_name varchar(100) NOT NULL,
+                    exam_date date DEFAULT NULL,
+                    total_marks int(11) NOT NULL,
+                    obtained_marks int(11) NOT NULL,
+                    percentage decimal(5,2) DEFAULT NULL,
+                    grade varchar(5) DEFAULT NULL,
+                    status enum('pass','fail','pending') DEFAULT 'pending',
+                    subjects text,
+                    remarks text,
+                    created_at datetime DEFAULT CURRENT_TIMESTAMP,
+                    updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    PRIMARY KEY (id),
+                    KEY student_id (student_id),
+                    KEY exam_date (exam_date),
+                    KEY status (status)
+                ) $charset_collate";
+                break;
+                
+            case 'settings':
+                $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}srm_settings (
+                    id int(11) NOT NULL AUTO_INCREMENT,
+                    setting_key varchar(100) NOT NULL,
+                    setting_value longtext,
+                    created_at datetime DEFAULT CURRENT_TIMESTAMP,
+                    updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    PRIMARY KEY (id),
+                    UNIQUE KEY setting_key (setting_key)
+                ) $charset_collate";
+                break;
+        }
+        
+        if (isset($sql)) {
+            $result = $wpdb->query($sql);
+            if ($result === false) {
+                error_log("SRM Plugin: Failed to create {$table_name} table: " . $wpdb->last_error);
+            } else {
+                error_log("SRM Plugin: Successfully created {$table_name} table");
+            }
+        }
+    }
+    
+    /**
+     * Verify tables exist after creation
+     */
+    private function verify_tables() {
+        global $wpdb;
+        
+        $required_tables = array(
+            $wpdb->prefix . 'srm_students',
+            $wpdb->prefix . 'srm_results', 
+            $wpdb->prefix . 'srm_settings'
+        );
+        
+        $missing_tables = array();
+        
+        foreach ($required_tables as $table) {
+            $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
+            if (!$exists) {
+                $missing_tables[] = $table;
+            }
+        }
+        
+        if (!empty($missing_tables)) {
+            $error_message = 'SRM Plugin: Failed to create tables: ' . implode(', ', $missing_tables);
+            error_log($error_message);
+            
+            // Store error for admin notice
+            update_option('srm_activation_error', $error_message);
+        } else {
+            // Clear any previous errors
+            delete_option('srm_activation_error');
+            error_log('SRM Plugin: All tables created successfully');
         }
     }
     
@@ -477,6 +615,103 @@ class StudentResultManagement {
         ob_start();
         include SRM_PLUGIN_PATH . 'includes/frontend/result-lookup.php';
         return ob_get_clean();
+    }
+    
+    /**
+     * Display admin notices
+     */
+    public function admin_notices() {
+        $error = get_option('srm_activation_error');
+        if ($error) {
+            ?>
+            <div class="notice notice-error">
+                <p><strong><?php _e('Student Result Management:', 'student-result-management'); ?></strong> <?php echo esc_html($error); ?></p>
+                <p>
+                    <button type="button" class="button button-primary" id="srm-create-tables">
+                        <?php _e('Try Creating Tables Again', 'student-result-management'); ?>
+                    </button>
+                    <button type="button" class="button" onclick="jQuery(this).closest('.notice').hide();">
+                        <?php _e('Dismiss', 'student-result-management'); ?>
+                    </button>
+                </p>
+            </div>
+            <script>
+            jQuery(document).ready(function($) {
+                $('#srm-create-tables').click(function() {
+                    var $btn = $(this);
+                    $btn.prop('disabled', true).text('<?php _e('Creating tables...', 'student-result-management'); ?>');
+                    
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'srm_create_tables',
+                            nonce: '<?php echo wp_create_nonce('srm_create_tables'); ?>'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                $btn.closest('.notice').removeClass('notice-error').addClass('notice-success');
+                                $btn.closest('.notice').find('p:first').html('<strong><?php _e('Success!', 'student-result-management'); ?></strong> ' + response.data.message);
+                                $btn.prop('disabled', false).text('<?php _e('Tables Created!', 'student-result-management'); ?>');
+                                
+                                // Reload page after 2 seconds
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 2000);
+                            } else {
+                                $btn.prop('disabled', false).text('<?php _e('Try Again', 'student-result-management'); ?>');
+                                alert('Error: ' + response.data.message);
+                            }
+                        },
+                        error: function() {
+                            $btn.prop('disabled', false).text('<?php _e('Try Again', 'student-result-management'); ?>');
+                            alert('<?php _e('Connection error. Please try again.', 'student-result-management'); ?>');
+                        }
+                    });
+                });
+            });
+            </script>
+            <?php
+        }
+    }
+    
+    /**
+     * AJAX handler to manually create tables
+     */
+    public function ajax_create_tables() {
+        if (!wp_verify_nonce($_POST['nonce'], 'srm_create_tables')) {
+            wp_send_json_error(array('message' => __('Security check failed.', 'student-result-management')));
+        }
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => __('Insufficient permissions.', 'student-result-management')));
+        }
+        
+        // Force create tables
+        $this->create_tables();
+        
+        // Verify creation
+        global $wpdb;
+        $required_tables = array(
+            $wpdb->prefix . 'srm_students',
+            $wpdb->prefix . 'srm_results', 
+            $wpdb->prefix . 'srm_settings'
+        );
+        
+        $missing_tables = array();
+        foreach ($required_tables as $table) {
+            $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
+            if (!$exists) {
+                $missing_tables[] = $table;
+            }
+        }
+        
+        if (empty($missing_tables)) {
+            delete_option('srm_activation_error');
+            wp_send_json_success(array('message' => __('All database tables created successfully!', 'student-result-management')));
+        } else {
+            wp_send_json_error(array('message' => __('Failed to create tables: ', 'student-result-management') . implode(', ', $missing_tables)));
+        }
     }
 }
 

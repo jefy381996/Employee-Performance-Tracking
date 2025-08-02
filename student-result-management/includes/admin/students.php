@@ -1,0 +1,325 @@
+<?php
+if (!defined('ABSPATH')) exit;
+
+global $wpdb;
+
+$action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'list';
+$student_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$message = '';
+$error = '';
+
+// Handle form submissions
+if ($_POST) {
+    if (!wp_verify_nonce($_POST['srm_nonce'], 'srm_student_action')) {
+        $error = __('Security check failed.', 'student-result-management');
+    } else {
+        $students_table = $wpdb->prefix . 'srm_students';
+        
+        $student_data = array(
+            'roll_number' => sanitize_text_field($_POST['roll_number']),
+            'first_name' => sanitize_text_field($_POST['first_name']),
+            'last_name' => sanitize_text_field($_POST['last_name']),
+            'email' => sanitize_email($_POST['email']),
+            'phone' => sanitize_text_field($_POST['phone']),
+            'class' => sanitize_text_field($_POST['class']),
+            'section' => sanitize_text_field($_POST['section']),
+            'date_of_birth' => sanitize_text_field($_POST['date_of_birth'])
+        );
+        
+        if ($action === 'add') {
+            $result = $wpdb->insert($students_table, $student_data);
+            if ($result) {
+                $message = __('Student added successfully!', 'student-result-management');
+                $action = 'list';
+            } else {
+                $error = __('Error adding student.', 'student-result-management');
+            }
+        } elseif ($action === 'edit' && $student_id) {
+            $result = $wpdb->update($students_table, $student_data, array('id' => $student_id));
+            if ($result !== false) {
+                $message = __('Student updated successfully!', 'student-result-management');
+                $action = 'list';
+            } else {
+                $error = __('Error updating student.', 'student-result-management');
+            }
+        }
+    }
+}
+
+// Handle delete action
+if ($action === 'delete' && $student_id && wp_verify_nonce($_GET['_wpnonce'], 'delete_student_' . $student_id)) {
+    $result = $wpdb->delete($wpdb->prefix . 'srm_students', array('id' => $student_id));
+    if ($result) {
+        $message = __('Student deleted successfully!', 'student-result-management');
+    } else {
+        $error = __('Error deleting student.', 'student-result-management');
+    }
+    $action = 'list';
+}
+
+// Get student data for editing
+$student = null;
+if ($action === 'edit' && $student_id) {
+    $student = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}srm_students WHERE id = %d", $student_id));
+    if (!$student) {
+        $error = __('Student not found.', 'student-result-management');
+        $action = 'list';
+    }
+}
+?>
+
+<div class="wrap srm-students">
+    <h1 class="wp-heading-inline">
+        <?php 
+        if ($action === 'add') {
+            _e('Add New Student', 'student-result-management');
+        } elseif ($action === 'edit') {
+            _e('Edit Student', 'student-result-management');
+        } else {
+            _e('Students', 'student-result-management');
+        }
+        ?>
+    </h1>
+    
+    <?php if ($action === 'list'): ?>
+        <a href="<?php echo admin_url('admin.php?page=srm-students&action=add'); ?>" class="page-title-action">
+            <?php _e('Add New', 'student-result-management'); ?>
+        </a>
+    <?php else: ?>
+        <a href="<?php echo admin_url('admin.php?page=srm-students'); ?>" class="page-title-action">
+            <?php _e('Back to List', 'student-result-management'); ?>
+        </a>
+    <?php endif; ?>
+    
+    <?php if ($message): ?>
+        <div class="notice notice-success is-dismissible">
+            <p><?php echo esc_html($message); ?></p>
+        </div>
+    <?php endif; ?>
+    
+    <?php if ($error): ?>
+        <div class="notice notice-error is-dismissible">
+            <p><?php echo esc_html($error); ?></p>
+        </div>
+    <?php endif; ?>
+    
+    <?php if ($action === 'add' || $action === 'edit'): ?>
+        <!-- Add/Edit Form -->
+        <div class="srm-form-container">
+            <form method="post" class="srm-student-form">
+                <?php wp_nonce_field('srm_student_action', 'srm_nonce'); ?>
+                
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="roll_number"><?php _e('Roll Number', 'student-result-management'); ?> *</label>
+                        </th>
+                        <td>
+                            <input type="text" name="roll_number" id="roll_number" class="regular-text" 
+                                   value="<?php echo $student ? esc_attr($student->roll_number) : ''; ?>" required>
+                            <p class="description"><?php _e('Unique roll number for the student.', 'student-result-management'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="first_name"><?php _e('First Name', 'student-result-management'); ?> *</label>
+                        </th>
+                        <td>
+                            <input type="text" name="first_name" id="first_name" class="regular-text" 
+                                   value="<?php echo $student ? esc_attr($student->first_name) : ''; ?>" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="last_name"><?php _e('Last Name', 'student-result-management'); ?> *</label>
+                        </th>
+                        <td>
+                            <input type="text" name="last_name" id="last_name" class="regular-text" 
+                                   value="<?php echo $student ? esc_attr($student->last_name) : ''; ?>" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="email"><?php _e('Email', 'student-result-management'); ?></label>
+                        </th>
+                        <td>
+                            <input type="email" name="email" id="email" class="regular-text" 
+                                   value="<?php echo $student ? esc_attr($student->email) : ''; ?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="phone"><?php _e('Phone', 'student-result-management'); ?></label>
+                        </th>
+                        <td>
+                            <input type="text" name="phone" id="phone" class="regular-text" 
+                                   value="<?php echo $student ? esc_attr($student->phone) : ''; ?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="class"><?php _e('Class', 'student-result-management'); ?> *</label>
+                        </th>
+                        <td>
+                            <input type="text" name="class" id="class" class="regular-text" 
+                                   value="<?php echo $student ? esc_attr($student->class) : ''; ?>" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="section"><?php _e('Section', 'student-result-management'); ?></label>
+                        </th>
+                        <td>
+                            <input type="text" name="section" id="section" class="regular-text" 
+                                   value="<?php echo $student ? esc_attr($student->section) : ''; ?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="date_of_birth"><?php _e('Date of Birth', 'student-result-management'); ?></label>
+                        </th>
+                        <td>
+                            <input type="date" name="date_of_birth" id="date_of_birth" class="regular-text" 
+                                   value="<?php echo $student ? esc_attr($student->date_of_birth) : ''; ?>">
+                        </td>
+                    </tr>
+                </table>
+                
+                <p class="submit">
+                    <input type="submit" name="submit" class="button button-primary" 
+                           value="<?php echo $action === 'edit' ? __('Update Student', 'student-result-management') : __('Add Student', 'student-result-management'); ?>">
+                </p>
+            </form>
+        </div>
+        
+    <?php else: ?>
+        <!-- Students List -->
+        <?php
+        $per_page = 20;
+        $current_page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+        $offset = ($current_page - 1) * $per_page;
+        
+        $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
+        $where_clause = '';
+        $search_params = array();
+        
+        if ($search) {
+            $where_clause = " WHERE first_name LIKE %s OR last_name LIKE %s OR roll_number LIKE %s OR email LIKE %s";
+            $search_params = array("%$search%", "%$search%", "%$search%", "%$search%");
+        }
+        
+        $total_query = "SELECT COUNT(*) FROM {$wpdb->prefix}srm_students" . $where_clause;
+        $students_query = "SELECT * FROM {$wpdb->prefix}srm_students" . $where_clause . " ORDER BY created_at DESC LIMIT %d OFFSET %d";
+        
+        if ($search) {
+            $total_students = $wpdb->get_var($wpdb->prepare($total_query, $search_params));
+            $students = $wpdb->get_results($wpdb->prepare($students_query, array_merge($search_params, array($per_page, $offset))));
+        } else {
+            $total_students = $wpdb->get_var($total_query);
+            $students = $wpdb->get_results($wpdb->prepare($students_query, array($per_page, $offset)));
+        }
+        
+        $total_pages = ceil($total_students / $per_page);
+        ?>
+        
+        <!-- Search Form -->
+        <div class="srm-search-form">
+            <form method="get">
+                <input type="hidden" name="page" value="srm-students">
+                <p class="search-box">
+                    <label class="screen-reader-text" for="student-search-input"><?php _e('Search Students:', 'student-result-management'); ?></label>
+                    <input type="search" id="student-search-input" name="s" value="<?php echo esc_attr($search); ?>" placeholder="<?php _e('Search students...', 'student-result-management'); ?>">
+                    <input type="submit" id="search-submit" class="button" value="<?php _e('Search Students', 'student-result-management'); ?>">
+                </p>
+            </form>
+        </div>
+        
+        <!-- Students Table -->
+        <div class="srm-table-container">
+            <?php if (!empty($students)): ?>
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th scope="col"><?php _e('Roll Number', 'student-result-management'); ?></th>
+                            <th scope="col"><?php _e('Name', 'student-result-management'); ?></th>
+                            <th scope="col"><?php _e('Class', 'student-result-management'); ?></th>
+                            <th scope="col"><?php _e('Email', 'student-result-management'); ?></th>
+                            <th scope="col"><?php _e('Phone', 'student-result-management'); ?></th>
+                            <th scope="col"><?php _e('Added', 'student-result-management'); ?></th>
+                            <th scope="col"><?php _e('Actions', 'student-result-management'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($students as $student): ?>
+                            <tr>
+                                <td><strong><?php echo esc_html($student->roll_number); ?></strong></td>
+                                <td>
+                                    <?php echo esc_html($student->first_name . ' ' . $student->last_name); ?>
+                                    <?php if ($student->section): ?>
+                                        <br><small><?php echo esc_html($student->section); ?></small>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo esc_html($student->class); ?></td>
+                                <td><?php echo esc_html($student->email); ?></td>
+                                <td><?php echo esc_html($student->phone); ?></td>
+                                <td><?php echo date_i18n(get_option('date_format'), strtotime($student->created_at)); ?></td>
+                                <td>
+                                    <div class="row-actions">
+                                        <span class="edit">
+                                            <a href="<?php echo admin_url('admin.php?page=srm-students&action=edit&id=' . $student->id); ?>">
+                                                <?php _e('Edit', 'student-result-management'); ?>
+                                            </a>
+                                        </span>
+                                        |
+                                        <span class="view">
+                                            <a href="<?php echo admin_url('admin.php?page=srm-results&student_id=' . $student->id); ?>">
+                                                <?php _e('Results', 'student-result-management'); ?>
+                                            </a>
+                                        </span>
+                                        |
+                                        <span class="delete">
+                                            <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=srm-students&action=delete&id=' . $student->id), 'delete_student_' . $student->id); ?>" 
+                                               onclick="return confirm('<?php _e('Are you sure you want to delete this student?', 'student-result-management'); ?>')">
+                                                <?php _e('Delete', 'student-result-management'); ?>
+                                            </a>
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                
+                <!-- Pagination -->
+                <?php if ($total_pages > 1): ?>
+                    <div class="tablenav bottom">
+                        <div class="tablenav-pages">
+                            <span class="displaying-num">
+                                <?php printf(__('%s items', 'student-result-management'), number_format_i18n($total_students)); ?>
+                            </span>
+                            <?php
+                            $pagination_args = array(
+                                'base' => add_query_arg('paged', '%#%'),
+                                'format' => '',
+                                'prev_text' => __('&laquo;', 'student-result-management'),
+                                'next_text' => __('&raquo;', 'student-result-management'),
+                                'total' => $total_pages,
+                                'current' => $current_page
+                            );
+                            echo paginate_links($pagination_args);
+                            ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+                
+            <?php else: ?>
+                <div class="srm-no-data">
+                    <p><?php _e('No students found.', 'student-result-management'); ?></p>
+                    <?php if ($search): ?>
+                        <p><a href="<?php echo admin_url('admin.php?page=srm-students'); ?>"><?php _e('Show all students', 'student-result-management'); ?></a></p>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+</div>

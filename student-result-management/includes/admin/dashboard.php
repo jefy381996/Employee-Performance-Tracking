@@ -27,6 +27,20 @@ $recent_results = $wpdb->get_results("
 ?>
 
 <div class="wrap srm-dashboard">
+    <?php 
+    // Display contact notice for free users
+    $license_manager = new SRM_License_Manager();
+    if (!$license_manager->has_premium_access()) {
+        echo '<div class="notice notice-info" style="margin: 20px 0; padding: 15px; background: #f0f8ff; border-left: 4px solid #0073aa;">';
+        echo '<h3 style="margin: 0 0 10px 0; color: #0073aa;">📞 Contact for Premium Version</h3>';
+        echo '<p style="margin: 0; font-size: 14px;"><strong>To buy the full Version, Contact Jaffar Abbas:</strong></p>';
+        echo '<ul style="margin: 10px 0 0 0; padding-left: 20px;">';
+        echo '<li><strong>WhatsApp:</strong> <a href="https://wa.me/923083430923" target="_blank">+923083430923</a></li>';
+        echo '<li><strong>Email:</strong> <a href="mailto:jaffar381996152@gmail.com">jaffar381996152@gmail.com</a></li>';
+        echo '</ul>';
+        echo '</div>';
+    }
+    ?>
     <h1 class="wp-heading-inline">
         <?php _e('Student Result Management Dashboard', 'student-result-management'); ?>
         <?php if ($is_owner): ?>

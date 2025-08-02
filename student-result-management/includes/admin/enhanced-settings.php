@@ -21,15 +21,7 @@ if (isset($_POST['srm_save_settings'])) {
     update_option('srm_grade_system', sanitize_text_field($_POST['grade_system']));
     update_option('srm_passing_marks', intval($_POST['passing_marks']));
     
-    // Save payment settings (only for plugin owner)
-    if ($is_owner) {
-        update_option('srm_stripe_secret_key', sanitize_text_field($_POST['stripe_secret_key']));
-        update_option('srm_stripe_publishable_key', sanitize_text_field($_POST['stripe_publishable_key']));
-        update_option('srm_paypal_client_id', sanitize_text_field($_POST['paypal_client_id']));
-        update_option('srm_paypal_secret', sanitize_text_field($_POST['paypal_secret']));
-        update_option('srm_premium_price', floatval($_POST['premium_price']));
-        update_option('srm_currency', sanitize_text_field($_POST['currency']));
-    }
+
     
     echo '<div class="notice notice-success"><p>' . __('Settings saved successfully!', 'student-result-management') . '</p></div>';
 }
@@ -41,15 +33,23 @@ $admin_email = get_option('srm_admin_email', get_option('admin_email'));
 $result_template = get_option('srm_result_template', 'default');
 $grade_system = get_option('srm_grade_system', 'letter');
 $passing_marks = get_option('srm_passing_marks', 40);
-$stripe_secret_key = get_option('srm_stripe_secret_key', '');
-$stripe_publishable_key = get_option('srm_stripe_publishable_key', '');
-$paypal_client_id = get_option('srm_paypal_client_id', '');
-$paypal_secret = get_option('srm_paypal_secret', '');
-$premium_price = get_option('srm_premium_price', 49);
-$currency = get_option('srm_currency', 'USD');
+
 ?>
 
 <div class="wrap srm-settings">
+    <?php 
+    // Display contact notice for free users
+    if (!$license_manager->has_premium_access()) {
+        echo '<div class="notice notice-info" style="margin: 20px 0; padding: 15px; background: #f0f8ff; border-left: 4px solid #0073aa;">';
+        echo '<h3 style="margin: 0 0 10px 0; color: #0073aa;">📞 Contact for Premium Version</h3>';
+        echo '<p style="margin: 0; font-size: 14px;"><strong>To buy the full Version, Contact Jaffar Abbas:</strong></p>';
+        echo '<ul style="margin: 10px 0 0 0; padding-left: 20px;">';
+        echo '<li><strong>WhatsApp:</strong> <a href="https://wa.me/923083430923" target="_blank">+923083430923</a></li>';
+        echo '<li><strong>Email:</strong> <a href="mailto:jaffar381996152@gmail.com">jaffar381996152@gmail.com</a></li>';
+        echo '</ul>';
+        echo '</div>';
+    }
+    ?>
     <h1><?php _e('Settings', 'student-result-management'); ?></h1>
     
     <form method="post" action="">
@@ -74,12 +74,16 @@ $currency = get_option('srm_currency', 'USD');
                     
                     <tr>
                         <th scope="row">
-                            <label for="school_logo"><?php _e('School Logo URL', 'student-result-management'); ?></label>
+                            <label for="school_logo"><?php _e('School Logo', 'student-result-management'); ?></label>
                         </th>
                         <td>
-                            <input type="url" id="school_logo" name="school_logo" class="regular-text" 
-                                   value="<?php echo esc_attr($school_logo); ?>">
-                            <p class="description"><?php _e('URL of your school logo (optional).', 'student-result-management'); ?></p>
+                            <input type="file" id="school_logo" name="school_logo" accept="image/jpeg,image/png" class="regular-text">
+                            <?php if (!empty($school_logo)): ?>
+                                <br><br>
+                                <img src="<?php echo esc_url($school_logo); ?>" alt="Current school logo" style="max-width: 150px; max-height: 150px; border: 1px solid #ddd;">
+                                <p class="description"><?php _e('Current school logo. Upload a new image to replace it.', 'student-result-management'); ?></p>
+                            <?php endif; ?>
+                            <p class="description"><?php _e('Upload your school logo (JPG or PNG format, optional).', 'student-result-management'); ?></p>
                         </td>
                     </tr>
                     
@@ -147,93 +151,7 @@ $currency = get_option('srm_currency', 'USD');
                 </table>
             </div>
             
-            <?php if ($is_owner): ?>
-                <!-- Payment Gateway Settings (Owner Only) -->
-                <div class="srm-settings-section">
-                    <h2><?php _e('Payment Gateway Settings', 'student-result-management'); ?></h2>
-                    <p class="description"><?php _e('Configure payment gateways for premium license sales. Only the plugin owner can access these settings.', 'student-result-management'); ?></p>
-                    
-                    <h3><?php _e('Stripe Configuration', 'student-result-management'); ?></h3>
-                    <table class="form-table">
-                        <tr>
-                            <th scope="row">
-                                <label for="stripe_secret_key"><?php _e('Stripe Secret Key', 'student-result-management'); ?></label>
-                            </th>
-                            <td>
-                                <input type="password" id="stripe_secret_key" name="stripe_secret_key" class="regular-text" 
-                                       value="<?php echo esc_attr($stripe_secret_key); ?>">
-                                <p class="description"><?php _e('Your Stripe secret key for processing payments.', 'student-result-management'); ?></p>
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <th scope="row">
-                                <label for="stripe_publishable_key"><?php _e('Stripe Publishable Key', 'student-result-management'); ?></label>
-                            </th>
-                            <td>
-                                <input type="text" id="stripe_publishable_key" name="stripe_publishable_key" class="regular-text" 
-                                       value="<?php echo esc_attr($stripe_publishable_key); ?>">
-                                <p class="description"><?php _e('Your Stripe publishable key for the frontend.', 'student-result-management'); ?></p>
-                            </td>
-                        </tr>
-                    </table>
-                    
-                    <h3><?php _e('PayPal Configuration', 'student-result-management'); ?></h3>
-                    <table class="form-table">
-                        <tr>
-                            <th scope="row">
-                                <label for="paypal_client_id"><?php _e('PayPal Client ID', 'student-result-management'); ?></label>
-                            </th>
-                            <td>
-                                <input type="text" id="paypal_client_id" name="paypal_client_id" class="regular-text" 
-                                       value="<?php echo esc_attr($paypal_client_id); ?>">
-                                <p class="description"><?php _e('Your PayPal client ID for processing payments.', 'student-result-management'); ?></p>
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <th scope="row">
-                                <label for="paypal_secret"><?php _e('PayPal Secret', 'student-result-management'); ?></label>
-                            </th>
-                            <td>
-                                <input type="password" id="paypal_secret" name="paypal_secret" class="regular-text" 
-                                       value="<?php echo esc_attr($paypal_secret); ?>">
-                                <p class="description"><?php _e('Your PayPal secret key.', 'student-result-management'); ?></p>
-                            </td>
-                        </tr>
-                    </table>
-                    
-                    <h3><?php _e('Pricing Settings', 'student-result-management'); ?></h3>
-                    <table class="form-table">
-                        <tr>
-                            <th scope="row">
-                                <label for="premium_price"><?php _e('Premium License Price', 'student-result-management'); ?></label>
-                            </th>
-                            <td>
-                                <input type="number" id="premium_price" name="premium_price" min="0" step="0.01" 
-                                       value="<?php echo esc_attr($premium_price); ?>">
-                                <p class="description"><?php _e('Price for premium license in your selected currency.', 'student-result-management'); ?></p>
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <th scope="row">
-                                <label for="currency"><?php _e('Currency', 'student-result-management'); ?></label>
-                            </th>
-                            <td>
-                                <select id="currency" name="currency">
-                                    <option value="USD" <?php selected($currency, 'USD'); ?>>USD - US Dollar</option>
-                                    <option value="EUR" <?php selected($currency, 'EUR'); ?>>EUR - Euro</option>
-                                    <option value="GBP" <?php selected($currency, 'GBP'); ?>>GBP - British Pound</option>
-                                    <option value="CAD" <?php selected($currency, 'CAD'); ?>>CAD - Canadian Dollar</option>
-                                    <option value="AUD" <?php selected($currency, 'AUD'); ?>>AUD - Australian Dollar</option>
-                                    <option value="INR" <?php selected($currency, 'INR'); ?>>INR - Indian Rupee</option>
-                                </select>
-                                <p class="description"><?php _e('Currency for premium license sales.', 'student-result-management'); ?></p>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
+
                 
                 <!-- License Management (Owner Only) -->
                 <div class="srm-settings-section">

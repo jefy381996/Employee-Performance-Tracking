@@ -3,8 +3,8 @@
  * Plugin Name: Student Result Management System
  * Plugin URI: https://yourwebsite.com/student-result-management
  * Description: A comprehensive student result management system with free and premium features. Manage student records, marks, and generate beautiful result cards.
- * Version: 1.0.0
- * Author: Your Name
+ * Version: 2.0
+ * Author: M. Jaffar Abbas
  * License: GPL v2 or later
  * Text Domain: student-result-management
  * Domain Path: /languages
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 // Define plugin constants
 define('SRM_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('SRM_PLUGIN_PATH', plugin_dir_path(__FILE__));
-define('SRM_PLUGIN_VERSION', '1.0.0');
+define('SRM_PLUGIN_VERSION', '2.0');
 define('SRM_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
 /**
@@ -754,6 +754,23 @@ class StudentResultManagement {
         ob_start();
         include SRM_PLUGIN_PATH . 'includes/frontend/result-lookup.php';
         return ob_get_clean();
+    }
+    
+    /**
+     * Display contact information notice
+     */
+    public function display_contact_notice() {
+        $license_manager = new SRM_License_Manager();
+        if (!$license_manager->has_premium_access()) {
+            echo '<div class="notice notice-info" style="margin: 20px 0; padding: 15px; background: #f0f8ff; border-left: 4px solid #0073aa;">';
+            echo '<h3 style="margin: 0 0 10px 0; color: #0073aa;">📞 Contact for Premium Version</h3>';
+            echo '<p style="margin: 0; font-size: 14px;"><strong>To buy the full Version, Contact Jaffar Abbas:</strong></p>';
+            echo '<ul style="margin: 10px 0 0 0; padding-left: 20px;">';
+            echo '<li><strong>WhatsApp:</strong> <a href="https://wa.me/923083430923" target="_blank">+923083430923</a></li>';
+            echo '<li><strong>Email:</strong> <a href="mailto:jaffar381996152@gmail.com">jaffar381996152@gmail.com</a></li>';
+            echo '</ul>';
+            echo '</div>';
+        }
     }
     
     /**

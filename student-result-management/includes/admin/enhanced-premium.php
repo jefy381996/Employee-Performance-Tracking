@@ -51,6 +51,7 @@ $license_key = $license_manager->get_license_key();
     }
     ?>
     
+    <!-- License Status Section -->
     <?php if ($has_premium): ?>
         <?php if ($is_owner): ?>
             <!-- Owner Features -->
@@ -89,42 +90,52 @@ $license_key = $license_manager->get_license_key();
             </p>
         </form>
     <?php else: ?>
-        <!-- License Activation for All Users -->
-        <div class="srm-license-activation">
-            <h3><?php _e('Activate License', 'student-result-management'); ?></h3>
-            
+        <!-- No License Active -->
+        <div class="srm-no-license">
             <div class="notice notice-warning">
+                <h3><?php _e('No License Active', 'student-result-management'); ?></h3>
+                <p><?php _e('You currently have access to free features only. Activate a license to access premium features.', 'student-result-management'); ?></p>
+            </div>
+        </div>
+    <?php endif; ?>
+    
+    <!-- License Activation Section (Always Visible) -->
+    <div class="srm-license-activation">
+        <h3><?php _e('License Management', 'student-result-management'); ?></h3>
+        
+        <?php if (!$has_premium): ?>
+            <div class="notice notice-info">
                 <p><?php _e('To access premium features, you need to activate a valid license key.', 'student-result-management'); ?></p>
                 <p><strong><?php _e('Plugin Owner Key:', 'student-result-management'); ?></strong> <code>Bismillah^512</code></p>
                 <p><strong><?php _e('Premium User Keys:', 'student-result-management'); ?></strong> <?php _e('Contact the plugin owner for premium license keys.', 'student-result-management'); ?></p>
             </div>
+        <?php endif; ?>
+        
+        <form method="post" id="srm-activate-form">
+            <?php wp_nonce_field('srm_license_nonce', 'srm_license_nonce'); ?>
             
-            <form method="post" id="srm-activate-form">
-                <?php wp_nonce_field('srm_license_nonce', 'srm_license_nonce'); ?>
-                
-                <table class="form-table">
-                    <tr>
-                        <th scope="row">
-                            <label for="license_key"><?php _e('License Key', 'student-result-management'); ?></label>
-                        </th>
-                        <td>
-                            <input type="text" id="license_key" name="license_key" value="" class="regular-text" required>
-                            <p class="description"><?php _e('Enter your license key to activate premium features', 'student-result-management'); ?></p>
-                        </td>
-                    </tr>
-                </table>
-                
-                <p class="submit">
-                    <button type="button" class="button button-primary" id="srm-activate-license">
-                        <?php _e('Activate License', 'student-result-management'); ?>
-                    </button>
-                    <button type="button" class="button button-secondary" id="srm-check-license">
-                        <?php _e('Check License Status', 'student-result-management'); ?>
-                    </button>
-                </p>
-            </form>
-        </div>
-    <?php endif; ?>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">
+                        <label for="license_key"><?php _e('License Key', 'student-result-management'); ?></label>
+                    </th>
+                    <td>
+                        <input type="text" id="license_key" name="license_key" value="" class="regular-text" required>
+                        <p class="description"><?php _e('Enter your license key to activate premium features', 'student-result-management'); ?></p>
+                    </td>
+                </tr>
+            </table>
+            
+            <p class="submit">
+                <button type="button" class="button button-primary" id="srm-activate-license">
+                    <?php _e('Activate License', 'student-result-management'); ?>
+                </button>
+                <button type="button" class="button button-secondary" id="srm-check-license">
+                    <?php _e('Check License Status', 'student-result-management'); ?>
+                </button>
+            </p>
+        </form>
+    </div>
     
     <!-- Feature Comparison -->
     <div class="srm-feature-comparison">
@@ -374,7 +385,7 @@ jQuery(document).ready(function($) {
     
     // License deactivation
     $('#srm-deactivate-license').on('click', function() {
-        if (confirm('Are you sure you want to deactivate your license? This will remove access to premium features.')) {
+        if (confirm('Are you sure you want to deactivate your license? This will remove access to premium features but you will still have access to free features.')) {
             $.ajax({
                 url: ajaxurl,
                 type: 'POST',
@@ -384,7 +395,7 @@ jQuery(document).ready(function($) {
                 },
                 success: function(response) {
                     if (response.success) {
-                        alert('License deactivated successfully!');
+                        alert('License deactivated successfully! You now have access to free features only.');
                         location.reload();
                     } else {
                         alert('Error: ' + response.data);

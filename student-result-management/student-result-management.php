@@ -491,23 +491,27 @@ class StudentResultManagement {
             array($this, 'admin_premium_page')
         );
         
-        add_submenu_page(
-            'student-results',
-            __('License Keys', 'student-result-management'),
-            __('License Keys', 'student-result-management'),
-            'manage_options',
-            'srm-license-keys',
-            array($this, 'admin_license_keys_page')
-        );
-        
-        add_submenu_page(
-            'student-results',
-            __('Testing Mode', 'student-result-management'),
-            __('Testing Mode', 'student-result-management'),
-            'manage_options',
-            'srm-testing-mode',
-            array($this, 'admin_testing_mode_page')
-        );
+        // Only show License Keys and Testing Mode to plugin owner
+        $license_manager = new SRM_License_Manager();
+        if ($license_manager->is_plugin_owner()) {
+            add_submenu_page(
+                'student-results',
+                __('License Keys', 'student-result-management'),
+                __('License Keys', 'student-result-management'),
+                'manage_options',
+                'srm-license-keys',
+                array($this, 'admin_license_keys_page')
+            );
+            
+            add_submenu_page(
+                'student-results',
+                __('Testing Mode', 'student-result-management'),
+                __('Testing Mode', 'student-result-management'),
+                'manage_options',
+                'srm-testing-mode',
+                array($this, 'admin_testing_mode_page')
+            );
+        }
     }
     
     /**

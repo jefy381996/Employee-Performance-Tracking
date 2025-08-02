@@ -87,6 +87,12 @@ class SRM_License_Manager {
             return;
         }
         
+        // Skip license check for free features (dashboard, students, results)
+        $free_pages = array('srm-dashboard', 'srm-students', 'srm-results');
+        if (isset($_GET['page']) && in_array($_GET['page'], $free_pages)) {
+            return;
+        }
+        
         // If no license is activated, redirect to premium features page
         if (!$this->has_any_license()) {
             wp_redirect(admin_url('admin.php?page=srm-premium&license_required=1'));

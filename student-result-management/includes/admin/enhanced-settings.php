@@ -185,14 +185,10 @@ $passing_marks = get_option('srm_passing_marks', 40);
                     
                     <div class="srm-license-actions">
                         <h3><?php _e('License Actions', 'student-result-management'); ?></h3>
-                        <p><?php _e('As the plugin owner, you can manage licenses and view payment history.', 'student-result-management'); ?></p>
+                        <p><?php _e('As the plugin owner, you can manage licenses and access all premium features.', 'student-result-management'); ?></p>
                         
                         <a href="<?php echo admin_url('admin.php?page=srm-premium'); ?>" class="button button-primary">
                             <?php _e('Manage Licenses', 'student-result-management'); ?>
-                        </a>
-                        
-                        <a href="<?php echo admin_url('admin.php?page=srm-premium#payment-history'); ?>" class="button button-secondary">
-                            <?php _e('View Payment History', 'student-result-management'); ?>
                         </a>
                     </div>
                 </div>

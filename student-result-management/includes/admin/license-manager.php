@@ -62,6 +62,47 @@ class SRM_License_Manager {
     }
     
     /**
+     * Check if user can add more students (free users limited to 20)
+     */
+    public function can_add_student() {
+        // Plugin owner can always add students
+        if ($this->is_plugin_owner()) {
+            return true;
+        }
+        
+        // Premium users can always add students
+        if ($this->has_premium_access()) {
+            return true;
+        }
+        
+        // Free users are limited to 20 students
+        $student_count = $this->get_student_count();
+        return $student_count < 20;
+    }
+    
+    /**
+     * Get current student count
+     */
+    public function get_student_count() {
+        global $wpdb;
+        $students_table = $wpdb->prefix . 'srm_students';
+        return (int) $wpdb->get_var("SELECT COUNT(*) FROM $students_table");
+    }
+    
+    /**
+     * Get remaining student slots for free users
+     */
+    public function get_remaining_student_slots() {
+        if ($this->has_premium_access()) {
+            return 'unlimited';
+        }
+        
+        $student_count = $this->get_student_count();
+        $remaining = 20 - $student_count;
+        return max(0, $remaining);
+    }
+    
+    /**
      * Get current license status
      */
     public function get_license_status() {

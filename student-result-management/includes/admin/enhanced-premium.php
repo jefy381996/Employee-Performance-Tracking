@@ -125,8 +125,8 @@ $license_key = $license_manager->get_license_key();
             <tbody>
                 <tr>
                     <td><?php _e('Student Management', 'student-result-management'); ?></td>
-                    <td><span class="dashicons dashicons-yes"></span></td>
-                    <td><span class="dashicons dashicons-yes"></span></td>
+                    <td><span class="dashicons dashicons-yes"></span> <small>(20 students max)</small></td>
+                    <td><span class="dashicons dashicons-yes"></span> <small>(Unlimited)</small></td>
                 </tr>
                 <tr>
                     <td><?php _e('Result Management', 'student-result-management'); ?></td>

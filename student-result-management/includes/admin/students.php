@@ -71,23 +71,28 @@ if ($_POST && isset($_POST['srm_nonce'])) {
             });
             
             if ($action === 'add') {
-                // Check if roll number already exists
-                $existing = $wpdb->get_var($wpdb->prepare(
-                    "SELECT id FROM $students_table WHERE roll_number = %s",
-                    $student_data['roll_number']
-                ));
-                
-                if ($existing) {
-                    $error = __('A student with this roll number already exists.', 'student-result-management');
+                // Check student limit for free users
+                $license_manager = new SRM_License_Manager();
+                if (!$license_manager->can_add_student()) {
+                    $student_count = $license_manager->get_student_count();
+                    $error = sprintf(__('You have reached the limit of 20 students for free users. Current count: %d. Upgrade to premium for unlimited students.', 'student-result-management'), $student_count);
                 } else {
-                    $result = $wpdb->insert($students_table, $student_data);
-                    if ($result) {
-                        $message = __('Student added successfully!', 'student-result-management');
-                        $action = 'list';
-                        
-
+                    // Check if roll number already exists
+                    $existing = $wpdb->get_var($wpdb->prepare(
+                        "SELECT id FROM $students_table WHERE roll_number = %s",
+                        $student_data['roll_number']
+                    ));
+                    
+                    if ($existing) {
+                        $error = __('A student with this roll number already exists.', 'student-result-management');
                     } else {
-                        $error = __('Error adding student: ', 'student-result-management') . $wpdb->last_error;
+                        $result = $wpdb->insert($students_table, $student_data);
+                        if ($result) {
+                            $message = __('Student added successfully!', 'student-result-management');
+                            $action = 'list';
+                        } else {
+                            $error = __('Error adding student: ', 'student-result-management') . $wpdb->last_error;
+                        }
                     }
                 }
             } elseif ($action === 'edit' && $student_id) {
@@ -150,9 +155,40 @@ if ($action === 'edit' && $student_id) {
     </h1>
     
     <?php if ($action === 'list'): ?>
-        <a href="<?php echo admin_url('admin.php?page=srm-students&action=add'); ?>" class="page-title-action">
-            <?php _e('Add New', 'student-result-management'); ?>
-        </a>
+        <?php
+        // Display student count and limit information
+        $license_manager = new SRM_License_Manager();
+        $student_count = $license_manager->get_student_count();
+        $remaining_slots = $license_manager->get_remaining_student_slots();
+        $can_add = $license_manager->can_add_student();
+        ?>
+        
+        <div class="srm-student-limit-info">
+            <div class="srm-limit-card">
+                <h3><?php _e('Student Limit Status', 'student-result-management'); ?></h3>
+                <div class="srm-limit-details">
+                    <p><strong><?php _e('Current Students:', 'student-result-management'); ?></strong> <?php echo $student_count; ?></p>
+                    <?php if ($license_manager->has_premium_access()): ?>
+                        <p><strong><?php _e('Status:', 'student-result-management'); ?></strong> <span class="srm-status-premium"><?php _e('Premium - Unlimited', 'student-result-management'); ?></span></p>
+                    <?php else: ?>
+                        <p><strong><?php _e('Remaining Slots:', 'student-result-management'); ?></strong> <?php echo $remaining_slots; ?> / 20</p>
+                        <?php if (!$can_add): ?>
+                            <p class="srm-limit-warning"><?php _e('⚠️ You have reached the 20 student limit for free users. Upgrade to premium for unlimited students.', 'student-result-management'); ?></p>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        
+        <?php if ($can_add): ?>
+            <a href="<?php echo admin_url('admin.php?page=srm-students&action=add'); ?>" class="page-title-action">
+                <?php _e('Add New', 'student-result-management'); ?>
+            </a>
+        <?php else: ?>
+            <a href="<?php echo admin_url('admin.php?page=srm-enhanced-premium'); ?>" class="page-title-action button-primary">
+                <?php _e('Upgrade to Premium', 'student-result-management'); ?>
+            </a>
+        <?php endif; ?>
     <?php else: ?>
         <a href="<?php echo admin_url('admin.php?page=srm-students'); ?>" class="page-title-action">
             <?php _e('Back to List', 'student-result-management'); ?>
@@ -418,4 +454,54 @@ if ($action === 'edit' && $student_id) {
         </div>
     <?php endif; ?>
 </div>
+
+<style>
+.srm-student-limit-info {
+    margin: 20px 0;
+}
+
+.srm-limit-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    max-width: 400px;
+}
+
+.srm-limit-card h3 {
+    margin: 0 0 15px 0;
+    color: #23282d;
+    font-size: 16px;
+}
+
+.srm-limit-details p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.srm-status-premium {
+    background: #d4edda;
+    color: #155724;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.srm-limit-warning {
+    color: #721c24;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.srm-limit-details strong {
+    color: #23282d;
+}
+</style>
 

@@ -44,13 +44,14 @@ This plugin now uses a simple license key system for premium feature access. No 
 ## 📋 Feature Access
 
 ### Free Features (Always Available)
-- ✅ Student Management (Add, Edit, Delete)
+- ✅ Student Management (Add, Edit, Delete) - **Limited to 20 students**
 - ✅ Result Management (Add, Edit, Delete)
 - ✅ Result Lookup (Frontend)
 - ✅ Basic Dashboard
 - ✅ Basic Settings
 
 ### Premium Features (Require License)
+- ✅ Student Management - **Unlimited students**
 - ✅ CSV Import/Export
 - ✅ Advanced Analytics with Charts
 - ✅ Email Notifications System

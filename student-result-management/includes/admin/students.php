@@ -29,6 +29,29 @@ if ($_POST && isset($_POST['srm_nonce'])) {
         if (!empty($validation_errors)) {
             $error = implode(' ', $validation_errors);
         } else {
+            // Handle profile image upload (premium feature)
+            $profile_image = '';
+            if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+                $license_manager = new SRM_License_Manager();
+                if ($license_manager->has_premium_access()) {
+                    $upload_dir = wp_upload_dir();
+                    $target_dir = $upload_dir['basedir'] . '/srm-profiles/';
+                    wp_mkdir_p($target_dir);
+                    
+                    $file_extension = strtolower(pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION));
+                    $allowed_extensions = array('jpg', 'jpeg', 'png', 'gif');
+                    
+                    if (in_array($file_extension, $allowed_extensions)) {
+                        $filename = 'profile_' . time() . '_' . sanitize_file_name($_FILES['profile_image']['name']);
+                        $target_file = $target_dir . $filename;
+                        
+                        if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $target_file)) {
+                            $profile_image = $upload_dir['baseurl'] . '/srm-profiles/' . $filename;
+                        }
+                    }
+                }
+            }
+            
             // Prepare student data
             $student_data = array(
                 'roll_number' => sanitize_text_field($_POST['roll_number']),
@@ -38,7 +61,8 @@ if ($_POST && isset($_POST['srm_nonce'])) {
                 'phone' => sanitize_text_field($_POST['phone']),
                 'class' => sanitize_text_field($_POST['class']),
                 'section' => sanitize_text_field($_POST['section']),
-                'date_of_birth' => !empty($_POST['date_of_birth']) ? sanitize_text_field($_POST['date_of_birth']) : null
+                'date_of_birth' => !empty($_POST['date_of_birth']) ? sanitize_text_field($_POST['date_of_birth']) : null,
+                'profile_image' => $profile_image
             );
             
             // Remove empty values except for required fields
@@ -150,7 +174,7 @@ if ($action === 'edit' && $student_id) {
     <?php if ($action === 'add' || $action === 'edit'): ?>
         <!-- Add/Edit Form -->
         <div class="srm-form-container">
-            <form method="post" class="srm-student-form">
+            <form method="post" class="srm-student-form" enctype="multipart/form-data">
                 <?php wp_nonce_field('srm_student_action', 'srm_nonce'); ?>
                 
                 <table class="form-table">
@@ -225,6 +249,33 @@ if ($action === 'edit' && $student_id) {
                         <td>
                             <input type="date" name="date_of_birth" id="date_of_birth" class="regular-text" 
                                    value="<?php echo $student ? esc_attr($student->date_of_birth) : ''; ?>">
+                        </td>
+                    </tr>
+                    <?php 
+                    // Check if user has premium access for profile image upload
+                    $license_manager = new SRM_License_Manager();
+                    $has_premium = $license_manager->has_premium_access();
+                    ?>
+                    <tr>
+                        <th scope="row">
+                            <label for="profile_image"><?php _e('Profile Image', 'student-result-management'); ?></label>
+                        </th>
+                        <td>
+                            <?php if ($has_premium): ?>
+                                <input type="file" name="profile_image" id="profile_image" accept="image/*">
+                                <?php if ($student && !empty($student->profile_image)): ?>
+                                    <br><br>
+                                    <img src="<?php echo esc_url($student->profile_image); ?>" alt="Current profile image" style="max-width: 100px; max-height: 100px; border: 1px solid #ddd;">
+                                    <p class="description"><?php _e('Current profile image. Upload a new image to replace it.', 'student-result-management'); ?></p>
+                                <?php endif; ?>
+                                <p class="description"><?php _e('Upload a profile image for the student (Premium feature).', 'student-result-management'); ?></p>
+                            <?php else: ?>
+                                <p class="description" style="color: #d63638;">
+                                    <strong><?php _e('Premium Feature:', 'student-result-management'); ?></strong> 
+                                    <?php _e('Profile image upload is available with premium license. ', 'student-result-management'); ?>
+                                    <a href="<?php echo admin_url('admin.php?page=srm-premium'); ?>"><?php _e('Upgrade to Premium', 'student-result-management'); ?></a>
+                                </p>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 </table>

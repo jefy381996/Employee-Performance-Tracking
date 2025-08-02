@@ -37,6 +37,13 @@ class SRM_License_Manager {
     public function is_plugin_owner() {
         $current_user_id = get_current_user_id();
         $plugin_owner = get_option('srm_plugin_owner');
+        
+        // If no plugin owner is set, set the current user as owner
+        if (empty($plugin_owner)) {
+            update_option('srm_plugin_owner', $current_user_id);
+            $plugin_owner = $current_user_id;
+        }
+        
         return ($current_user_id == $plugin_owner);
     }
     

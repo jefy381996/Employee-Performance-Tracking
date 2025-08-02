@@ -40,10 +40,13 @@ class StudentResultManagement {
         add_action('wp_ajax_srm_upload_csv', array($this, 'ajax_upload_csv'));
         add_action('wp_ajax_srm_generate_pdf', array($this, 'ajax_generate_pdf'));
         add_action('wp_ajax_srm_create_tables', array($this, 'ajax_create_tables'));
+        add_action('wp_ajax_srm_generate_license', array($this, 'ajax_generate_license'));
+        add_action('wp_ajax_srm_check_all_licenses', array($this, 'ajax_check_all_licenses'));
         
         // Include license manager and feature control system
         require_once SRM_PLUGIN_PATH . 'includes/admin/license-manager.php';
         require_once SRM_PLUGIN_PATH . 'includes/admin/feature-control.php';
+        require_once SRM_PLUGIN_PATH . 'includes/admin/pdf-generator.php';
         
         // Shortcode for frontend result display
         add_shortcode('student_result_lookup', array($this, 'result_lookup_shortcode'));
@@ -602,19 +605,27 @@ class StudentResultManagement {
     public function ajax_generate_pdf() {
         check_ajax_referer('srm_nonce', 'nonce');
         
-        if (!$this->is_premium_user()) {
+        // Check if user has premium access
+        $license_manager = new SRM_License_Manager();
+        if (!$license_manager->has_premium_access()) {
             wp_send_json_error(__('This is a premium feature. Please upgrade to access it.', 'student-result-management'));
         }
         
         $student_id = intval($_POST['student_id']);
         $result_id = intval($_POST['result_id']);
         
-        // Generate PDF logic would go here
-        // For now, we'll return a success message
-        wp_send_json_success(array(
-            'message' => __('PDF generated successfully!', 'student-result-management'),
-            'download_url' => admin_url('admin.php?page=srm-results&action=download_pdf&student_id=' . $student_id . '&result_id=' . $result_id)
-        ));
+        // Generate PDF using the PDF generator
+        $pdf_generator = new SRM_PDF_Generator();
+        $result = $pdf_generator->generate_result_pdf($student_id, $result_id);
+        
+        if ($result['success']) {
+            wp_send_json_success(array(
+                'message' => $result['message'],
+                'download_url' => $result['download_url']
+            ));
+        } else {
+            wp_send_json_error($result['message']);
+        }
     }
     
     /**
@@ -724,6 +735,61 @@ class StudentResultManagement {
             wp_send_json_success(array('message' => __('All database tables created successfully!', 'student-result-management')));
         } else {
             wp_send_json_error(array('message' => __('Failed to create tables: ', 'student-result-management') . implode(', ', $missing_tables)));
+        }
+    }
+    
+    /**
+     * AJAX handler for generating license key (owner only)
+     */
+    public function ajax_generate_license() {
+        check_ajax_referer('srm_license_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+        
+        $license_manager = new SRM_License_Manager();
+        if (!$license_manager->is_plugin_owner()) {
+            wp_send_json_error('Only plugin owner can generate license keys');
+        }
+        
+        $license_key = $license_manager->generate_license_key();
+        $result = $license_manager->activate_license($license_key);
+        
+        if ($result['success']) {
+            wp_send_json_success(array(
+                'license_key' => $license_key,
+                'message' => 'License generated and activated successfully!'
+            ));
+        } else {
+            wp_send_json_error($result['message']);
+        }
+    }
+    
+    /**
+     * AJAX handler for checking all licenses (owner only)
+     */
+    public function ajax_check_all_licenses() {
+        check_ajax_referer('srm_license_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+        
+        $license_manager = new SRM_License_Manager();
+        if (!$license_manager->is_plugin_owner()) {
+            wp_send_json_error('Only plugin owner can check licenses');
+        }
+        
+        $result = $license_manager->check_license_status();
+        
+        if ($result['success']) {
+            wp_send_json_success(array(
+                'status' => $result['status'],
+                'message' => 'License status checked successfully!'
+            ));
+        } else {
+            wp_send_json_error($result['message']);
         }
     }
 }

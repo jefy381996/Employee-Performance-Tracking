@@ -16,6 +16,20 @@ $license_status = $license_manager->get_license_status();
 $license_key = $license_manager->get_license_key();
 $payment_methods = $payment_processor->get_available_payment_methods();
 $payment_history = $payment_processor->get_payment_history(5);
+
+// Handle certificate template upload
+if (isset($_POST['srm_upload_certificate']) && wp_verify_nonce($_POST['srm_certificate_nonce'], 'srm_certificate_upload')) {
+    if (isset($_FILES['certificate_template']) && $_FILES['certificate_template']['error'] === UPLOAD_ERR_OK) {
+        $pdf_generator = new SRM_PDF_Generator();
+        $result = $pdf_generator->upload_certificate_template($_FILES['certificate_template']);
+        
+        if ($result['success']) {
+            echo '<div class="notice notice-success"><p>' . $result['message'] . '</p></div>';
+        } else {
+            echo '<div class="notice notice-error"><p>' . $result['message'] . '</p></div>';
+        }
+    }
+}
 ?>
 
 <div class="wrap srm-enhanced-premium">
@@ -63,6 +77,46 @@ $payment_history = $payment_processor->get_payment_history(5);
                     <button class="button button-secondary" id="srm-check-licenses">
                         <?php _e('Check All Licenses', 'student-result-management'); ?>
                     </button>
+                </div>
+            </div>
+            
+            <!-- Certificate Template Management -->
+            <div class="srm-certificate-management">
+                <h3><?php _e('Certificate Template Management', 'student-result-management'); ?></h3>
+                <p><?php _e('Upload custom certificate templates for PDF generation.', 'student-result-management'); ?></p>
+                
+                <form method="post" enctype="multipart/form-data" id="srm-certificate-form">
+                    <?php wp_nonce_field('srm_certificate_upload', 'srm_certificate_nonce'); ?>
+                    <table class="form-table">
+                        <tr>
+                            <th scope="row">
+                                <label for="certificate_template"><?php _e('Upload Certificate Template', 'student-result-management'); ?></label>
+                            </th>
+                            <td>
+                                <input type="file" name="certificate_template" id="certificate_template" accept=".html,.htm">
+                                <p class="description"><?php _e('Upload an HTML template for certificate generation. Use placeholders like {STUDENT_NAME}, {ROLL_NUMBER}, etc.', 'student-result-management'); ?></p>
+                            </td>
+                        </tr>
+                    </table>
+                    <p class="submit">
+                        <input type="submit" name="srm_upload_certificate" class="button button-primary" value="<?php _e('Upload Template', 'student-result-management'); ?>">
+                    </p>
+                </form>
+                
+                <div class="srm-template-info">
+                    <h4><?php _e('Available Templates', 'student-result-management'); ?></h4>
+                    <?php 
+                    $pdf_generator = new SRM_PDF_Generator();
+                    $templates = $pdf_generator->get_available_templates();
+                    if (!empty($templates)): ?>
+                        <ul>
+                            <?php foreach ($templates as $template): ?>
+                                <li><?php echo esc_html($template['name']); ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php else: ?>
+                        <p><?php _e('No custom templates uploaded yet. Using default template.', 'student-result-management'); ?></p>
+                    <?php endif; ?>
                 </div>
             </div>
             
@@ -653,6 +707,53 @@ jQuery(document).ready(function($) {
                     alert('Payment processed successfully! Your license has been activated.');
                     $('#srm-payment-modal').hide();
                     location.reload();
+                } else {
+                    alert('Error: ' + response.data);
+                }
+            },
+            error: function() {
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+    
+    // Generate license key (owner only)
+    $('#srm-generate-license').on('click', function() {
+        if (confirm('Generate a new license key?')) {
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'srm_generate_license',
+                    nonce: $('#srm_license_nonce').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('New license key generated: ' + response.data.license_key);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.data);
+                    }
+                },
+                error: function() {
+                    alert('An error occurred. Please try again.');
+                }
+            });
+        }
+    });
+    
+    // Check all licenses (owner only)
+    $('#srm-check-licenses').on('click', function() {
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'srm_check_all_licenses',
+                nonce: $('#srm_license_nonce').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('License check completed. Status: ' + response.data.status);
                 } else {
                     alert('Error: ' + response.data);
                 }

@@ -42,6 +42,15 @@ $license_key = $license_manager->get_license_key();
         </div>
     </div>
     
+    <?php 
+    // Show notice if license is required
+    if (isset($_GET['license_required'])) {
+        echo '<div class="notice notice-error">';
+        echo '<p><strong>' . __('License Required!', 'student-result-management') . '</strong> ' . __('You must activate a license key to access plugin features.', 'student-result-management') . '</p>';
+        echo '</div>';
+    }
+    ?>
+    
     <?php if ($has_premium): ?>
         <?php if ($is_owner): ?>
             <!-- Owner Features -->

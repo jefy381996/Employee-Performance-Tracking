@@ -52,6 +52,9 @@ class StudentResultManagement {
         require_once SRM_PLUGIN_PATH . 'includes/admin/license-manager.php';
         require_once SRM_PLUGIN_PATH . 'includes/admin/feature-control.php';
         
+        // License check on admin pages
+        add_action('admin_init', array($this, 'check_license_on_admin'));
+        
         // Shortcode for frontend result display
         add_shortcode('student_result_lookup', array($this, 'result_lookup_shortcode'));
     }
@@ -556,6 +559,14 @@ class StudentResultManagement {
         require_once SRM_PLUGIN_PATH . 'includes/admin/license-manager.php';
         $license_manager = new SRM_License_Manager();
         return $license_manager->has_premium_access();
+    }
+    
+    /**
+     * Check license on admin pages
+     */
+    public function check_license_on_admin() {
+        $license_manager = new SRM_License_Manager();
+        $license_manager->force_license_check();
     }
     
     /**

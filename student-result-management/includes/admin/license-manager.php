@@ -66,6 +66,35 @@ class SRM_License_Manager {
     }
     
     /**
+     * Check if user has any license activated (for admin pages)
+     */
+    public function has_any_license() {
+        $license_key = $this->get_license_key();
+        return !empty($license_key);
+    }
+    
+    /**
+     * Force license check on admin pages
+     */
+    public function force_license_check() {
+        // Only check on plugin admin pages
+        if (!isset($_GET['page']) || strpos($_GET['page'], 'srm-') === false) {
+            return;
+        }
+        
+        // Skip license check on the premium features page itself
+        if (isset($_GET['page']) && $_GET['page'] === 'srm-premium') {
+            return;
+        }
+        
+        // If no license is activated, redirect to premium features page
+        if (!$this->has_any_license()) {
+            wp_redirect(admin_url('admin.php?page=srm-premium&license_required=1'));
+            exit;
+        }
+    }
+    
+    /**
      * Check if user can add more students (free users limited to 20)
      */
     public function can_add_student() {

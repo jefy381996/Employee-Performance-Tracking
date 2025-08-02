@@ -40,8 +40,6 @@ class StudentResultManagement {
         add_action('wp_ajax_srm_upload_csv', array($this, 'ajax_upload_csv'));
         add_action('wp_ajax_srm_download_pdf', array($this, 'ajax_download_pdf'));
         add_action('wp_ajax_srm_create_tables', array($this, 'ajax_create_tables'));
-        add_action('wp_ajax_srm_generate_license', array($this, 'ajax_generate_license'));
-        add_action('wp_ajax_srm_check_all_licenses', array($this, 'ajax_check_all_licenses'));
         add_action('wp_ajax_srm_import_students_csv', array($this, 'ajax_import_students_csv'));
         add_action('wp_ajax_srm_import_results_csv', array($this, 'ajax_import_results_csv'));
         add_action('wp_ajax_srm_export_analytics', array($this, 'ajax_export_analytics'));
@@ -50,7 +48,6 @@ class StudentResultManagement {
         // Include license manager and feature control system
         require_once SRM_PLUGIN_PATH . 'includes/admin/license-manager.php';
         require_once SRM_PLUGIN_PATH . 'includes/admin/feature-control.php';
-        require_once SRM_PLUGIN_PATH . 'includes/admin/payment-processor.php';
         
         // Shortcode for frontend result display
         add_shortcode('student_result_lookup', array($this, 'result_lookup_shortcode'));
@@ -856,57 +853,7 @@ class StudentResultManagement {
         }
     }
     
-    /**
-     * AJAX handler for generating license key (owner only)
-     */
-    public function ajax_generate_license() {
-        check_ajax_referer('srm_license_nonce', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error('Insufficient permissions');
-        }
-        
-        $license_manager = new SRM_License_Manager();
-        if (!$license_manager->is_plugin_owner()) {
-            wp_send_json_error('Only plugin owner can generate license keys');
-        }
-        
-        $license_key = $license_manager->generate_license_key();
-        
-        // For demo purposes, we'll simulate successful activation
-        // In a real system, you'd validate the license with your server
-        wp_send_json_success(array(
-            'license_key' => $license_key,
-            'message' => 'License generated successfully!'
-        ));
-    }
-    
-    /**
-     * AJAX handler for checking all licenses (owner only)
-     */
-    public function ajax_check_all_licenses() {
-        check_ajax_referer('srm_license_nonce', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error('Insufficient permissions');
-        }
-        
-        $license_manager = new SRM_License_Manager();
-        if (!$license_manager->is_plugin_owner()) {
-            wp_send_json_error('Only plugin owner can check licenses');
-        }
-        
-        $result = $license_manager->check_license_status();
-        
-        if ($result['success']) {
-            wp_send_json_success(array(
-                'status' => $result['status'],
-                'message' => 'License status checked successfully!'
-            ));
-        } else {
-            wp_send_json_error($result['message']);
-        }
-    }
+
     
     public function ajax_import_students_csv() {
         check_ajax_referer('srm_csv_nonce', 'nonce');

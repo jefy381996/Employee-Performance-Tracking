@@ -1,23 +1,20 @@
 <?php
 /**
  * License Manager for Student Result Management System
- * Handles premium feature access, license validation, and payment processing
+ * Simple license key system for premium feature access
  */
 
 if (!defined('ABSPATH')) exit;
 
 class SRM_License_Manager {
     
-    private $license_api_url = 'https://your-license-server.com/api/';
-    private $plugin_slug = 'student-result-management';
-    private $plugin_version = '1.0.0';
+    private $owner_key = 'Bismillah^512';
     
     public function __construct() {
         add_action('admin_init', array($this, 'init_license_manager'));
         add_action('wp_ajax_srm_activate_license', array($this, 'ajax_activate_license'));
         add_action('wp_ajax_srm_deactivate_license', array($this, 'ajax_deactivate_license'));
         add_action('wp_ajax_srm_check_license_status', array($this, 'ajax_check_license_status'));
-        add_action('wp_ajax_srm_process_payment', array($this, 'ajax_process_payment'));
     }
     
     /**
@@ -38,10 +35,13 @@ class SRM_License_Manager {
         $current_user_id = get_current_user_id();
         $plugin_owner = get_option('srm_plugin_owner');
         
-        // If no plugin owner is set, set the current user as owner
+        // If no plugin owner is set, check if current user has owner key
         if (empty($plugin_owner)) {
-            update_option('srm_plugin_owner', $current_user_id);
-            $plugin_owner = $current_user_id;
+            $license_key = $this->get_license_key();
+            if ($license_key === $this->owner_key) {
+                update_option('srm_plugin_owner', $current_user_id);
+                $plugin_owner = $current_user_id;
+            }
         }
         
         return ($current_user_id == $plugin_owner);
@@ -51,232 +51,113 @@ class SRM_License_Manager {
      * Check if user has premium access
      */
     public function has_premium_access() {
-        // Check if testing mode is active
-        $testing_mode = get_option('srm_testing_mode', '');
-        $testing_user_id = get_option('srm_testing_user_id', 0);
-        $current_user_id = get_current_user_id();
-        
-        // If testing mode is active for current user
-        if ($testing_user_id == $current_user_id && !empty($testing_mode)) {
-            switch ($testing_mode) {
-                case 'free':
-                    return false;
-                case 'premium':
-                    return true;
-                case 'expired':
-                    return false;
-                default:
-                    return false;
-            }
-        }
-        
-        // Plugin owner always has premium access (unless in testing mode)
+        // Plugin owner always has premium access
         if ($this->is_plugin_owner()) {
             return true;
         }
         
-        // Check license status
-        $license_status = $this->get_license_status();
-        return ($license_status === 'premium' || $license_status === 'active');
+        // Check if user has a valid license key
+        $license_key = $this->get_license_key();
+        return !empty($license_key) && $this->is_valid_license_key($license_key);
     }
     
     /**
      * Get current license status
      */
     public function get_license_status() {
-        global $wpdb;
-        $settings_table = $wpdb->prefix . 'srm_settings';
-        $status = $wpdb->get_var($wpdb->prepare(
-            "SELECT setting_value FROM $settings_table WHERE setting_name = %s",
-            'license_status'
-        ));
+        if ($this->is_plugin_owner()) {
+            return 'owner';
+        }
         
-        return $status ?: 'free';
+        $license_key = $this->get_license_key();
+        if (!empty($license_key)) {
+            if ($license_key === $this->owner_key) {
+                return 'owner';
+            } elseif ($this->is_valid_license_key($license_key)) {
+                return 'premium';
+            } else {
+                return 'invalid';
+            }
+        }
+        
+        return 'free';
     }
     
     /**
      * Get license key
      */
     public function get_license_key() {
-        global $wpdb;
-        $settings_table = $wpdb->prefix . 'srm_settings';
-        $key = $wpdb->get_var($wpdb->prepare(
-            "SELECT setting_value FROM $settings_table WHERE setting_name = %s",
-            'license_key'
-        ));
-        
-        return $key ?: '';
+        return get_option('srm_license_key', '');
     }
     
     /**
      * Activate license
      */
     public function activate_license($license_key) {
-        $response = wp_remote_post($this->license_api_url . 'activate', array(
-            'body' => array(
-                'license_key' => $license_key,
-                'site_url' => get_site_url(),
-                'plugin_slug' => $this->plugin_slug,
-                'plugin_version' => $this->plugin_version
-            ),
-            'timeout' => 30
-        ));
+        $license_key = sanitize_text_field($license_key);
         
-        if (is_wp_error($response)) {
-            return array('success' => false, 'message' => 'Connection error: ' . $response->get_error_message());
+        // Check if it's the owner key
+        if ($license_key === $this->owner_key) {
+            update_option('srm_plugin_owner', get_current_user_id());
+            update_option('srm_license_key', $license_key);
+            update_option('srm_license_status', 'owner');
+            return array('success' => true, 'message' => 'Owner access activated successfully!');
         }
         
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-        
-        if ($data && isset($data['success'])) {
-            if ($data['success']) {
-                $this->update_license_status('premium');
-                $this->update_license_key($license_key);
-                return array('success' => true, 'message' => 'License activated successfully!');
-            } else {
-                return array('success' => false, 'message' => $data['message'] ?? 'Invalid license key');
-            }
+        // Check if it's a valid license key
+        if ($this->is_valid_license_key($license_key)) {
+            update_option('srm_license_key', $license_key);
+            update_option('srm_license_status', 'premium');
+            return array('success' => true, 'message' => 'Premium license activated successfully!');
         }
         
-        return array('success' => false, 'message' => 'Invalid response from license server');
+        return array('success' => false, 'message' => 'Invalid license key. Please check and try again.');
     }
     
     /**
      * Deactivate license
      */
     public function deactivate_license() {
-        $license_key = $this->get_license_key();
+        delete_option('srm_license_key');
+        delete_option('srm_license_status');
         
-        if (empty($license_key)) {
-            return array('success' => false, 'message' => 'No license key to deactivate');
-        }
-        
-        $response = wp_remote_post($this->license_api_url . 'deactivate', array(
-            'body' => array(
-                'license_key' => $license_key,
-                'site_url' => get_site_url()
-            ),
-            'timeout' => 30
-        ));
-        
-        if (is_wp_error($response)) {
-            return array('success' => false, 'message' => 'Connection error: ' . $response->get_error_message());
-        }
-        
-        $this->update_license_status('free');
-        $this->update_license_key('');
-        
+        // Don't remove plugin owner status
         return array('success' => true, 'message' => 'License deactivated successfully!');
     }
     
     /**
-     * Check license status with server
+     * Check license status
      */
     public function check_license_status() {
-        $license_key = $this->get_license_key();
-        
-        if (empty($license_key)) {
-            return array('success' => false, 'message' => 'No license key found');
-        }
-        
-        $response = wp_remote_post($this->license_api_url . 'check', array(
-            'body' => array(
-                'license_key' => $license_key,
-                'site_url' => get_site_url()
-            ),
-            'timeout' => 30
-        ));
-        
-        if (is_wp_error($response)) {
-            return array('success' => false, 'message' => 'Connection error: ' . $response->get_error_message());
-        }
-        
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-        
-        if ($data && isset($data['success'])) {
-            if ($data['success']) {
-                $status = $data['status'] ?? 'free';
-                $this->update_license_status($status);
-                return array('success' => true, 'status' => $status);
-            } else {
-                $this->update_license_status('free');
-                return array('success' => false, 'message' => $data['message'] ?? 'License check failed');
-            }
-        }
-        
-        return array('success' => false, 'message' => 'Invalid response from license server');
+        $status = $this->get_license_status();
+        return array('success' => true, 'status' => $status);
     }
     
     /**
-     * Process payment for premium upgrade
+     * Validate license key format
      */
-    public function process_payment($payment_data) {
-        // This would integrate with your payment processor (Stripe, PayPal, etc.)
-        // For demo purposes, we'll simulate a successful payment
-        
-        $payment_processor = new SRM_Payment_Processor();
-        $result = $payment_processor->process_payment($payment_data);
-        
-        if ($result['success']) {
-            // Generate license key
-            $license_key = $this->generate_license_key();
-            
-            // Activate license
-            $activation_result = $this->activate_license($license_key);
-            
-            if ($activation_result['success']) {
-                return array(
-                    'success' => true,
-                    'message' => 'Payment processed and license activated successfully!',
-                    'license_key' => $license_key
-                );
-            } else {
-                return array(
-                    'success' => false,
-                    'message' => 'Payment successful but license activation failed: ' . $activation_result['message']
-                );
-            }
+    private function is_valid_license_key($key) {
+        // Basic validation - you can customize this
+        // License keys should be alphanumeric with some special characters
+        // Length between 8 and 32 characters
+        if (strlen($key) < 8 || strlen($key) > 32) {
+            return false;
         }
         
-        return $result;
-    }
-    
-    /**
-     * Generate a license key
-     */
-    public function generate_license_key() {
-        $prefix = 'SRM';
-        $timestamp = time();
-        $random = wp_generate_password(16, false);
-        return $prefix . '-' . $timestamp . '-' . $random;
-    }
-    
-    /**
-     * Update license status
-     */
-    private function update_license_status($status) {
-        global $wpdb;
-        $settings_table = $wpdb->prefix . 'srm_settings';
+        // Check if it contains at least one letter and one number
+        if (!preg_match('/[A-Za-z]/', $key) || !preg_match('/[0-9]/', $key)) {
+            return false;
+        }
         
-        $wpdb->replace($settings_table, array(
-            'setting_name' => 'license_status',
-            'setting_value' => $status
-        ));
-    }
-    
-    /**
-     * Update license key
-     */
-    private function update_license_key($key) {
-        global $wpdb;
-        $settings_table = $wpdb->prefix . 'srm_settings';
+        // Check if it's not the owner key (to prevent confusion)
+        if ($key === $this->owner_key) {
+            return false; // This should be handled separately
+        }
         
-        $wpdb->replace($settings_table, array(
-            'setting_name' => 'license_key',
-            'setting_value' => $key
-        ));
+        // You can add more validation rules here
+        // For example, check against a database of valid keys
+        
+        return true;
     }
     
     /**
@@ -292,7 +173,7 @@ class SRM_License_Manager {
         $license_key = sanitize_text_field($_POST['license_key']);
         
         if (empty($license_key)) {
-            wp_send_json_error('License key is required');
+            wp_send_json_error('Please enter a license key');
         }
         
         $result = $this->activate_license($license_key);
@@ -336,39 +217,9 @@ class SRM_License_Manager {
         $result = $this->check_license_status();
         
         if ($result['success']) {
-            wp_send_json_success($result);
+            wp_send_json_success(array('status' => $result['status']));
         } else {
-            wp_send_json_error($result['message']);
-        }
-    }
-    
-    /**
-     * AJAX handler for payment processing
-     */
-    public function ajax_process_payment() {
-        check_ajax_referer('srm_payment_nonce', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error('Insufficient permissions');
-        }
-        
-        $payment_data = array(
-            'amount' => sanitize_text_field($_POST['amount']),
-            'currency' => sanitize_text_field($_POST['currency']),
-            'payment_method' => sanitize_text_field($_POST['payment_method']),
-            'customer_email' => sanitize_email($_POST['customer_email']),
-            'customer_name' => sanitize_text_field($_POST['customer_name'])
-        );
-        
-        $result = $this->process_payment($payment_data);
-        
-        if ($result['success']) {
-            wp_send_json_success($result);
-        } else {
-            wp_send_json_error($result['message']);
+            wp_send_json_error('Failed to check license status');
         }
     }
 }
-
-// Initialize license manager
-$srm_license_manager = new SRM_License_Manager();

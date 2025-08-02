@@ -41,7 +41,8 @@ class StudentResultManagement {
         add_action('wp_ajax_srm_generate_pdf', array($this, 'ajax_generate_pdf'));
         add_action('wp_ajax_srm_create_tables', array($this, 'ajax_create_tables'));
         
-        // Include feature control system
+        // Include license manager and feature control system
+        require_once SRM_PLUGIN_PATH . 'includes/admin/license-manager.php';
         require_once SRM_PLUGIN_PATH . 'includes/admin/feature-control.php';
         
         // Shortcode for frontend result display
@@ -165,6 +166,7 @@ class StudentResultManagement {
             error_log('SRM Plugin: Students table creation result: ' . print_r($students_result, true));
             error_log('SRM Plugin: Results table creation result: ' . print_r($results_result, true));
             error_log('SRM Plugin: Settings table creation result: ' . print_r($settings_result, true));
+            error_log('SRM Plugin: Payments table creation result: ' . print_r($payments_result, true));
         }
         
         // Force table creation if dbDelta didn't work

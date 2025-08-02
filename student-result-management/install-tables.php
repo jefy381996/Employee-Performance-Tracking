@@ -66,6 +66,23 @@ $tables_sql = array(
         updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         UNIQUE KEY setting_key (setting_key)
+    ) $charset_collate",
+    
+    'payments' => "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}srm_payments (
+        id int(11) NOT NULL AUTO_INCREMENT,
+        transaction_id varchar(100) NOT NULL UNIQUE,
+        amount decimal(10,2) NOT NULL,
+        currency varchar(10) NOT NULL DEFAULT 'USD',
+        payment_method varchar(50) NOT NULL,
+        customer_email varchar(100) NOT NULL,
+        customer_name varchar(100) NOT NULL,
+        status varchar(20) NOT NULL DEFAULT 'pending',
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY transaction_id (transaction_id),
+        KEY status (status),
+        KEY customer_email (customer_email)
     ) $charset_collate"
 );
 

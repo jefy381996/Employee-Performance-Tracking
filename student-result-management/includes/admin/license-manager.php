@@ -220,7 +220,7 @@ class SRM_License_Manager {
     /**
      * Generate a license key
      */
-    private function generate_license_key() {
+    public function generate_license_key() {
         $prefix = 'SRM';
         $timestamp = time();
         $random = wp_generate_password(16, false);

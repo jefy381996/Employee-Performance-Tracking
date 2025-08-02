@@ -44,9 +44,7 @@ class StudentResultManagement {
         add_action('wp_ajax_srm_import_results_csv', array($this, 'ajax_import_results_csv'));
         add_action('wp_ajax_srm_export_analytics', array($this, 'ajax_export_analytics'));
         add_action('wp_ajax_srm_preview_template', array($this, 'ajax_preview_template'));
-        add_action('wp_ajax_srm_add_valid_key', array($this, 'ajax_add_valid_key'));
-        add_action('wp_ajax_srm_remove_valid_key', array($this, 'ajax_remove_valid_key'));
-        add_action('wp_ajax_srm_get_valid_keys', array($this, 'ajax_get_valid_keys'));
+
         
         // Include license manager and feature control system
         require_once SRM_PLUGIN_PATH . 'includes/admin/license-manager.php';
@@ -488,27 +486,7 @@ class StudentResultManagement {
             array($this, 'admin_premium_page')
         );
         
-        // Only show License Keys and Testing Mode to plugin owner
-        $license_manager = new SRM_License_Manager();
-        if ($license_manager->is_plugin_owner()) {
-            add_submenu_page(
-                'student-results',
-                __('License Keys', 'student-result-management'),
-                __('License Keys', 'student-result-management'),
-                'manage_options',
-                'srm-license-keys',
-                array($this, 'admin_license_keys_page')
-            );
-            
-            add_submenu_page(
-                'student-results',
-                __('Testing Mode', 'student-result-management'),
-                __('Testing Mode', 'student-result-management'),
-                'manage_options',
-                'srm-testing-mode',
-                array($this, 'admin_testing_mode_page')
-            );
-        }
+
     }
     
     /**
@@ -632,16 +610,7 @@ class StudentResultManagement {
         include SRM_PLUGIN_PATH . 'includes/admin/custom-templates.php';
     }
     
-    /**
-     * Admin license keys page
-     */
-    public function admin_license_keys_page() {
-        include SRM_PLUGIN_PATH . 'includes/admin/license-key-manager.php';
-    }
-    
-    public function admin_testing_mode_page() {
-        include SRM_PLUGIN_PATH . 'includes/admin/testing-mode.php';
-    }
+
     
     /**
      * AJAX handler for getting student result
@@ -1116,87 +1085,7 @@ class StudentResultManagement {
         wp_send_json_success(array('preview' => $preview_content));
     }
     
-    /**
-     * AJAX handler for adding valid license key (owner only)
-     */
-    public function ajax_add_valid_key() {
-        check_ajax_referer('srm_license_nonce', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error('Insufficient permissions');
-        }
-        
-        $license_manager = new SRM_License_Manager();
-        if (!$license_manager->is_plugin_owner()) {
-            wp_send_json_error('Only plugin owner can manage license keys');
-        }
-        
-        $key = sanitize_text_field($_POST['license_key']);
-        
-        if (empty($key)) {
-            wp_send_json_error('License key is required');
-        }
-        
-        if ($license_manager->add_valid_license_key($key)) {
-            wp_send_json_success('License key added successfully!');
-        } else {
-            wp_send_json_error('License key already exists in valid list');
-        }
-    }
-    
-    /**
-     * AJAX handler for removing valid license key (owner only)
-     */
-    public function ajax_remove_valid_key() {
-        check_ajax_referer('srm_license_nonce', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error('Insufficient permissions');
-        }
-        
-        $license_manager = new SRM_License_Manager();
-        if (!$license_manager->is_plugin_owner()) {
-            wp_send_json_error('Only plugin owner can manage license keys');
-        }
-        
-        $key = sanitize_text_field($_POST['license_key']);
-        
-        if (empty($key)) {
-            wp_send_json_error('License key is required');
-        }
-        
-        if ($license_manager->remove_valid_license_key($key)) {
-            wp_send_json_success('License key removed successfully!');
-        } else {
-            wp_send_json_error('Failed to remove license key');
-        }
-    }
-    
-    /**
-     * AJAX handler for getting valid license keys (owner only)
-     */
-    public function ajax_get_valid_keys() {
-        check_ajax_referer('srm_license_nonce', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error('Insufficient permissions');
-        }
-        
-        $license_manager = new SRM_License_Manager();
-        if (!$license_manager->is_plugin_owner()) {
-            wp_send_json_error('Only plugin owner can view license keys');
-        }
-        
-        $valid_keys = $license_manager->get_valid_license_keys();
-        $keys_with_usage = array();
-        
-        foreach ($valid_keys as $key) {
-            $usage = $license_manager->get_license_key_usage($key);
-            $keys_with_usage[] = $usage;
-        }
-        
-        wp_send_json_success($keys_with_usage);
-    }
+
     
     /**
      * Calculate grade based on percentage

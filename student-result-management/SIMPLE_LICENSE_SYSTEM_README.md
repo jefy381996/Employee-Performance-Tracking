@@ -13,11 +13,14 @@ This plugin now uses a simple license key system for premium feature access. No 
 - **Required**: Even the plugin owner must enter this key to get access
 
 ### Premium License Keys
-- **Format**: Alphanumeric with special characters (8-32 characters)
-- **Validation**: Must contain at least one letter and one number
+- **Format**: 13-digit license keys with specific character requirements
+- **Length**: Exactly 13 characters
+- **1st character**: B, J, N, A, F, or T
+- **4th character**: X, G, K, D, E, or P
+- **8th, 9th, or 10th character**: Special character (!@#$%^&*() etc.)
+- **13th character**: B, G, N, K, F, or P
 - **Access**: All premium features unlocked (but not owner access)
-- **Management**: Plugin owner can add/remove valid keys
-- **Usage Tracking**: System tracks which keys are in use
+- **Validation**: Automatic format validation by the plugin
 
 ### Free Users
 - **Access**: Basic features only
@@ -31,10 +34,9 @@ This plugin now uses a simple license key system for premium feature access. No 
 3. Enter the owner key: `Bismillah^512`
 4. Click "Activate License"
 5. You now have full owner access
-6. Go to **Student Results > License Keys** to manage valid keys for other users
 
 ### 2. Premium User Setup
-1. Contact the plugin owner to request a license key
+1. Contact the plugin owner to request a 13-digit license key
 2. Go to **Student Results > Premium Features**
 3. Enter your license key
 4. Click "Activate License"
@@ -44,9 +46,7 @@ This plugin now uses a simple license key system for premium feature access. No 
 - **Activate**: Enter license key to unlock features
 - **Deactivate**: Remove license to lock features
 - **Check Status**: Verify current license status
-- **Add Keys**: Plugin owner can add new valid keys
-- **Remove Keys**: Plugin owner can remove keys (revokes access)
-- **Usage Tracking**: See which keys are currently in use
+- **External Management**: License keys are managed externally by the plugin owner
 
 ## 📋 Feature Access
 
@@ -68,20 +68,6 @@ This plugin now uses a simple license key system for premium feature access. No 
 - ✅ PDF Certificate Upload
 - ✅ Certificate Download
 
-## 🧪 Testing System
-
-### Testing Mode
-1. Go to **Student Results > Testing Mode**
-2. Choose test role: Free User, Premium User, or Expired License
-3. Test feature access and restrictions
-4. Deactivate testing to return to normal mode
-
-### Testing Steps
-1. Activate testing as "Free User"
-2. Try premium features - should see upgrade prompts
-3. Switch to "Premium User" - all features should work
-4. Test "Expired License" - features should be locked
-
 ## 🔧 Technical Details
 
 ### License Validation
@@ -94,93 +80,55 @@ $has_premium = $license_manager->has_premium_access();
 $is_owner = $license_manager->is_plugin_owner();
 ```
 
-### License Key Format
-- **Length**: 8-32 characters
-- **Content**: Alphanumeric + special characters
-- **Requirements**: At least one letter and one number
-- **Owner Key**: `Bismillah^512` (special case)
+### License Key Format Examples
+- **Valid**: `B5XK!@#$%^&*F` (B at start, X at 4th, ! at 8th, F at end)
+- **Valid**: `J2G#ABC123@P` (J at start, G at 4th, # at 9th, P at end)
+- **Valid**: `N8K$XYZ789%B` (N at start, K at 4th, $ at 10th, B at end)
+- **Invalid**: `ABCDEFGHIJKLM` (wrong characters at required positions)
+- **Invalid**: `B5XKABCDEFGH` (no special char at 8-10th position)
 
-### Database Storage
-- **License Key**: Stored in `wp_options` as `srm_license_key`
-- **License Status**: Stored in `wp_options` as `srm_license_status`
-- **Plugin Owner**: Stored in `wp_options` as `srm_plugin_owner`
+## 🧪 Testing
 
-## 📁 File Structure
+### Test License Keys
+1. **Owner Key**: `Bismillah^512` (grants owner access)
+2. **Valid Premium Keys**: Use 13-digit keys with correct format
+3. **Invalid Keys**: Test with wrong format to see validation errors
 
-```
-student-result-management/
-├── student-result-management.php (Main plugin file)
-├── includes/admin/
-│   ├── license-manager.php (License system)
-│   ├── enhanced-premium.php (Premium features page)
-│   ├── testing-mode.php (Testing system)
-│   ├── csv-import-export.php (CSV functionality)
-│   ├── advanced-analytics.php (Analytics)
-│   ├── email-notifications.php (Email system)
-│   ├── data-backup-restore.php (Backup system)
-│   └── custom-templates.php (Template system)
-└── README files
-```
-
-## 🎯 Usage Instructions
-
-### For Plugin Owner
-1. Install plugin
-2. Enter owner key: `Bismillah^512` in Premium Features page
-3. Full access to all features + license key management
-4. Can provide license keys to others
-
-### For Premium Users
-1. Contact plugin owner for license key
-2. Enter license key in Premium Features page
-3. Access all premium features + unlimited students
-4. No owner access (cannot manage license keys)
-
-### For Free Users
-1. Use basic features only
-2. Limited to 20 students
-3. See upgrade prompts for premium features
+### Testing Steps
+1. Clear license data for fresh testing
+2. Try owner key to verify owner access
+3. Try valid 13-digit keys to verify premium access
+4. Try invalid keys to verify error handling
+5. Test deactivation to verify free access remains
 
 ## 🔒 Security Features
 
-- **Nonce Verification**: All forms and AJAX requests
-- **Capability Checks**: Proper WordPress capability checks
-- **Data Sanitization**: All user inputs sanitized
-- **License Validation**: Server-side license verification
-- **Owner Protection**: Owner status cannot be removed by deactivation
+- **Nonce Protection**: All AJAX requests are protected with nonces
+- **Permission Checks**: Only admin users can access license features
+- **Input Sanitization**: All license keys are sanitized before processing
+- **Status Verification**: License status is checked on each admin page load
+- **Format Validation**: Strict 13-digit format validation
 
-## 🐛 Troubleshooting
+## 📝 External License Management
 
-### Common Issues
+The plugin owner manages license keys externally:
+1. **Generate Keys**: Create valid 13-digit license keys outside the plugin
+2. **Distribute Keys**: Provide keys to users through external channels
+3. **Format Validation**: Keys are validated automatically by the plugin
+4. **No Internal Management**: No license key management within the plugin
 
-1. **License Not Working**
-   - Check license key format
-   - Verify key contains letters and numbers
-   - Ensure key is 8-32 characters long
+## 🚫 Removed Features
 
-2. **Owner Key Not Working**
-   - Verify exact spelling: `Bismillah^512`
-   - Check for extra spaces
-   - Ensure you're an admin user
+- ❌ License Keys management page
+- ❌ Testing Mode page
+- ❌ Payment gateway integration
+- ❌ License key generation
+- ❌ Internal license key storage
 
-3. **Premium Features Locked**
-   - Check license status in Premium Features page
-   - Verify license key is active
-   - Try deactivating and reactivating license
+## 🎯 Benefits
 
-4. **Testing Mode Issues**
-   - Go to Testing Mode page
-   - Deactivate testing mode
-   - Check current license status
-
-## 📞 Support
-
-For support and license requests:
-1. Contact the plugin owner
-2. Provide your website URL
-3. Explain your intended use
-4. Receive your unique license key
-
----
-
-**Note**: This is a simple, effective license system designed for easy management and clear feature access control.
+- **Simple**: Just enter a key to unlock features
+- **Secure**: Format validation prevents invalid keys
+- **External**: License management happens outside the plugin
+- **Clean**: No complex payment or management systems
+- **Reliable**: Automatic validation ensures only valid keys work

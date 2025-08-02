@@ -60,7 +60,6 @@ $license_key = $license_manager->get_license_key();
                     <h3><?php _e('Owner Access', 'student-result-management'); ?></h3>
                     <ul>
                         <li><?php _e('Full access to all premium features', 'student-result-management'); ?></li>
-                        <li><?php _e('Can manage license keys for other users', 'student-result-management'); ?></li>
                         <li><?php _e('Access to all admin functions', 'student-result-management'); ?></li>
                         <li><?php _e('Can deactivate and reactivate licenses', 'student-result-management'); ?></li>
                     </ul>
@@ -102,7 +101,8 @@ $license_key = $license_manager->get_license_key();
             <div class="notice notice-info">
                 <p><?php _e('To access premium features, you need to activate a valid license key.', 'student-result-management'); ?></p>
                 <p><strong><?php _e('Plugin Owner Key:', 'student-result-management'); ?></strong> <code>Bismillah^512</code></p>
-                <p><strong><?php _e('Premium User Keys:', 'student-result-management'); ?></strong> <?php _e('Contact the plugin owner for premium license keys.', 'student-result-management'); ?></p>
+                <p><strong><?php _e('Premium User Keys:', 'student-result-management'); ?></strong> <?php _e('13-digit license keys provided by the plugin owner.', 'student-result-management'); ?></p>
+                <p><strong><?php _e('License Key Format:', 'student-result-management'); ?></strong> <?php _e('13 characters with specific character requirements at positions 1, 4, 8-10, and 13.', 'student-result-management'); ?></p>
             </div>
         <?php endif; ?>
         

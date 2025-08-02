@@ -15,6 +15,8 @@ This plugin now uses a simple license key system for premium feature access. No 
 - **Format**: Alphanumeric with special characters (8-32 characters)
 - **Validation**: Must contain at least one letter and one number
 - **Access**: All premium features unlocked
+- **Management**: Plugin owner can add/remove valid keys
+- **Usage Tracking**: System tracks which keys are in use
 
 ### Free Users
 - **Access**: Basic features only
@@ -28,6 +30,7 @@ This plugin now uses a simple license key system for premium feature access. No 
 3. Enter the owner key: `Bismillah^512`
 4. Click "Activate License"
 5. You now have full owner access
+6. Go to **Student Results > License Keys** to manage valid keys
 
 ### 2. Premium User Setup
 1. Contact the plugin owner to request a license key
@@ -40,6 +43,9 @@ This plugin now uses a simple license key system for premium feature access. No 
 - **Activate**: Enter license key to unlock features
 - **Deactivate**: Remove license to lock features
 - **Check Status**: Verify current license status
+- **Add Keys**: Plugin owner can add new valid keys
+- **Remove Keys**: Plugin owner can remove keys (revokes access)
+- **Usage Tracking**: See which keys are currently in use
 
 ## 📋 Feature Access
 

@@ -51,7 +51,26 @@ class SRM_License_Manager {
      * Check if user has premium access
      */
     public function has_premium_access() {
-        // Plugin owner always has premium access
+        // Check if testing mode is active
+        $testing_mode = get_option('srm_testing_mode', '');
+        $testing_user_id = get_option('srm_testing_user_id', 0);
+        $current_user_id = get_current_user_id();
+        
+        // If testing mode is active for current user
+        if ($testing_user_id == $current_user_id && !empty($testing_mode)) {
+            switch ($testing_mode) {
+                case 'free':
+                    return false;
+                case 'premium':
+                    return true;
+                case 'expired':
+                    return false;
+                default:
+                    return false;
+            }
+        }
+        
+        // Plugin owner always has premium access (unless in testing mode)
         if ($this->is_plugin_owner()) {
             return true;
         }

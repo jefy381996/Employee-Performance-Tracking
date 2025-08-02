@@ -214,7 +214,15 @@ class SRM_Payment_Processor {
             $methods['stripe'] = array(
                 'name' => 'Credit Card (Stripe)',
                 'icon' => 'dashicons-credit-card',
-                'description' => 'Pay securely with your credit card'
+                'description' => 'Pay securely with Visa, MasterCard, American Express, and other cards'
+            );
+        }
+        
+        if (!empty(get_option('srm_mastercard_merchant_id', ''))) {
+            $methods['mastercard'] = array(
+                'name' => 'MasterCard Direct',
+                'icon' => 'dashicons-mastercard',
+                'description' => 'Pay directly with MasterCard'
             );
         }
         

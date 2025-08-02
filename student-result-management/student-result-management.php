@@ -42,10 +42,15 @@ class StudentResultManagement {
         add_action('wp_ajax_srm_create_tables', array($this, 'ajax_create_tables'));
         add_action('wp_ajax_srm_generate_license', array($this, 'ajax_generate_license'));
         add_action('wp_ajax_srm_check_all_licenses', array($this, 'ajax_check_all_licenses'));
+        add_action('wp_ajax_srm_import_students_csv', array($this, 'ajax_import_students_csv'));
+        add_action('wp_ajax_srm_import_results_csv', array($this, 'ajax_import_results_csv'));
+        add_action('wp_ajax_srm_export_analytics', array($this, 'ajax_export_analytics'));
+        add_action('wp_ajax_srm_preview_template', array($this, 'ajax_preview_template'));
         
         // Include license manager and feature control system
         require_once SRM_PLUGIN_PATH . 'includes/admin/license-manager.php';
         require_once SRM_PLUGIN_PATH . 'includes/admin/feature-control.php';
+        require_once SRM_PLUGIN_PATH . 'includes/admin/payment-processor.php';
         
         // Shortcode for frontend result display
         add_shortcode('student_result_lookup', array($this, 'result_lookup_shortcode'));
@@ -157,12 +162,43 @@ class StudentResultManagement {
             KEY customer_email (customer_email)
         ) $charset_collate;";
         
+        // Notifications table
+        $notifications_table = $wpdb->prefix . 'srm_notifications';
+        $notifications_sql = "CREATE TABLE $notifications_table (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            student_name varchar(100) NOT NULL,
+            notification_type varchar(50) NOT NULL,
+            email varchar(100) NOT NULL,
+            status varchar(20) NOT NULL DEFAULT 'pending',
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY notification_type (notification_type),
+            KEY status (status),
+            KEY email (email)
+        ) $charset_collate;";
+        
+        // Templates table
+        $templates_table = $wpdb->prefix . 'srm_templates';
+        $templates_sql = "CREATE TABLE $templates_table (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            template_name varchar(100) NOT NULL,
+            template_type varchar(50) NOT NULL,
+            template_content longtext NOT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY template_type (template_type),
+            KEY template_name (template_name)
+        ) $charset_collate;";
+        
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         
         $students_result = dbDelta($students_sql);
         $results_result = dbDelta($results_sql);
         $settings_result = dbDelta($settings_sql);
         $payments_result = dbDelta($payments_sql);
+        $notifications_result = dbDelta($notifications_sql);
+        $templates_result = dbDelta($templates_sql);
         
         // Log any database creation issues
         if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -186,7 +222,9 @@ class StudentResultManagement {
             'students' => $wpdb->prefix . 'srm_students',
             'results' => $wpdb->prefix . 'srm_results',
             'settings' => $wpdb->prefix . 'srm_settings',
-            'payments' => $wpdb->prefix . 'srm_payments'
+            'payments' => $wpdb->prefix . 'srm_payments',
+            'notifications' => $wpdb->prefix . 'srm_notifications',
+            'templates' => $wpdb->prefix . 'srm_templates'
         );
         
         foreach ($tables as $name => $table) {
@@ -377,6 +415,52 @@ class StudentResultManagement {
             array($this, 'admin_results_page')
         );
         
+        // Premium Features
+        add_submenu_page(
+            'student-results',
+            __('CSV Import/Export', 'student-result-management'),
+            __('CSV Import/Export', 'student-result-management'),
+            'manage_options',
+            'srm-csv-import-export',
+            array($this, 'admin_csv_import_export_page')
+        );
+        
+        add_submenu_page(
+            'student-results',
+            __('Advanced Analytics', 'student-result-management'),
+            __('Advanced Analytics', 'student-result-management'),
+            'manage_options',
+            'srm-advanced-analytics',
+            array($this, 'admin_advanced_analytics_page')
+        );
+        
+        add_submenu_page(
+            'student-results',
+            __('Email Notifications', 'student-result-management'),
+            __('Email Notifications', 'student-result-management'),
+            'manage_options',
+            'srm-email-notifications',
+            array($this, 'admin_email_notifications_page')
+        );
+        
+        add_submenu_page(
+            'student-results',
+            __('Data Backup & Restore', 'student-result-management'),
+            __('Data Backup & Restore', 'student-result-management'),
+            'manage_options',
+            'srm-data-backup-restore',
+            array($this, 'admin_data_backup_restore_page')
+        );
+        
+        add_submenu_page(
+            'student-results',
+            __('Custom Templates', 'student-result-management'),
+            __('Custom Templates', 'student-result-management'),
+            'manage_options',
+            'srm-custom-templates',
+            array($this, 'admin_custom_templates_page')
+        );
+        
         add_submenu_page(
             'student-results',
             __('Import/Export', 'student-result-management'),
@@ -402,6 +486,15 @@ class StudentResultManagement {
             'manage_options',
             'srm-premium',
             array($this, 'admin_premium_page')
+        );
+        
+        add_submenu_page(
+            'student-results',
+            __('Testing Mode', 'student-result-management'),
+            __('Testing Mode', 'student-result-management'),
+            'manage_options',
+            'srm-testing-mode',
+            array($this, 'admin_testing_mode_page')
         );
     }
     
@@ -496,6 +589,30 @@ class StudentResultManagement {
      */
     public function admin_premium_page() {
         include SRM_PLUGIN_PATH . 'includes/admin/enhanced-premium.php';
+    }
+    
+    public function admin_csv_import_export_page() {
+        include SRM_PLUGIN_PATH . 'includes/admin/csv-import-export.php';
+    }
+    
+    public function admin_advanced_analytics_page() {
+        include SRM_PLUGIN_PATH . 'includes/admin/advanced-analytics.php';
+    }
+    
+    public function admin_email_notifications_page() {
+        include SRM_PLUGIN_PATH . 'includes/admin/email-notifications.php';
+    }
+    
+    public function admin_data_backup_restore_page() {
+        include SRM_PLUGIN_PATH . 'includes/admin/data-backup-restore.php';
+    }
+    
+    public function admin_custom_templates_page() {
+        include SRM_PLUGIN_PATH . 'includes/admin/custom-templates.php';
+    }
+    
+    public function admin_testing_mode_page() {
+        include SRM_PLUGIN_PATH . 'includes/admin/testing-mode.php';
     }
     
     /**
@@ -789,6 +906,274 @@ class StudentResultManagement {
         } else {
             wp_send_json_error($result['message']);
         }
+    }
+    
+    public function ajax_import_students_csv() {
+        check_ajax_referer('srm_csv_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+        
+        $license_manager = new SRM_License_Manager();
+        if (!$license_manager->has_premium_access()) {
+            wp_send_json_error('This is a premium feature. Please upgrade to access it.');
+        }
+        
+        if (!isset($_FILES['csv_file'])) {
+            wp_send_json_error('No file uploaded');
+        }
+        
+        $file = $_FILES['csv_file'];
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            wp_send_json_error('File upload failed');
+        }
+        
+        $handle = fopen($file['tmp_name'], 'r');
+        if (!$handle) {
+            wp_send_json_error('Could not open file');
+        }
+        
+        global $wpdb;
+        $imported = 0;
+        $row = 1;
+        
+        while (($data = fgetcsv($handle)) !== false) {
+            if ($row === 1) {
+                $row++;
+                continue; // Skip header row
+            }
+            
+            if (count($data) >= 8) {
+                $result = $wpdb->insert(
+                    $wpdb->prefix . 'srm_students',
+                    array(
+                        'roll_number' => sanitize_text_field($data[0]),
+                        'first_name' => sanitize_text_field($data[1]),
+                        'last_name' => sanitize_text_field($data[2]),
+                        'email' => sanitize_email($data[3]),
+                        'phone' => sanitize_text_field($data[4]),
+                        'class' => sanitize_text_field($data[5]),
+                        'section' => sanitize_text_field($data[6]),
+                        'date_of_birth' => sanitize_text_field($data[7]),
+                        'created_at' => current_time('mysql')
+                    ),
+                    array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+                );
+                
+                if ($result !== false) {
+                    $imported++;
+                }
+            }
+            $row++;
+        }
+        
+        fclose($handle);
+        wp_send_json_success(array('imported' => $imported));
+    }
+    
+    public function ajax_import_results_csv() {
+        check_ajax_referer('srm_csv_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+        
+        $license_manager = new SRM_License_Manager();
+        if (!$license_manager->has_premium_access()) {
+            wp_send_json_error('This is a premium feature. Please upgrade to access it.');
+        }
+        
+        if (!isset($_FILES['results_csv_file'])) {
+            wp_send_json_error('No file uploaded');
+        }
+        
+        $file = $_FILES['results_csv_file'];
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            wp_send_json_error('File upload failed');
+        }
+        
+        $handle = fopen($file['tmp_name'], 'r');
+        if (!$handle) {
+            wp_send_json_error('Could not open file');
+        }
+        
+        global $wpdb;
+        $imported = 0;
+        $row = 1;
+        
+        while (($data = fgetcsv($handle)) !== false) {
+            if ($row === 1) {
+                $row++;
+                continue; // Skip header row
+            }
+            
+            if (count($data) >= 7) {
+                // Get student ID by roll number
+                $student = $wpdb->get_row($wpdb->prepare(
+                    "SELECT id FROM {$wpdb->prefix}srm_students WHERE roll_number = %s",
+                    $data[0]
+                ));
+                
+                if ($student) {
+                    $percentage = ($data[4] / $data[3]) * 100;
+                    $grade = $this->calculate_grade($percentage);
+                    $status = ($percentage >= 40) ? 'Pass' : 'Fail';
+                    
+                    $result = $wpdb->insert(
+                        $wpdb->prefix . 'srm_results',
+                        array(
+                            'student_id' => $student->id,
+                            'exam_name' => sanitize_text_field($data[1]),
+                            'exam_date' => sanitize_text_field($data[2]),
+                            'total_marks' => intval($data[3]),
+                            'obtained_marks' => intval($data[4]),
+                            'percentage' => $percentage,
+                            'grade' => $grade,
+                            'status' => $status,
+                            'remarks' => isset($data[7]) ? sanitize_text_field($data[7]) : '',
+                            'created_at' => current_time('mysql')
+                        ),
+                        array('%d', '%s', '%s', '%d', '%d', '%f', '%s', '%s', '%s', '%s')
+                    );
+                    
+                    if ($result !== false) {
+                        $imported++;
+                    }
+                }
+            }
+            $row++;
+        }
+        
+        fclose($handle);
+        wp_send_json_success(array('imported' => $imported));
+    }
+    
+    public function ajax_export_analytics() {
+        check_ajax_referer('srm_analytics_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+        
+        $license_manager = new SRM_License_Manager();
+        if (!$license_manager->has_premium_access()) {
+            wp_send_json_error('This is a premium feature. Please upgrade to access it.');
+        }
+        
+        $type = sanitize_text_field($_POST['type']);
+        global $wpdb;
+        
+        $filename = 'srm_analytics_' . $type . '_' . date('Y-m-d_H-i-s') . '.csv';
+        $file_path = WP_CONTENT_DIR . '/srm-exports/' . $filename;
+        
+        if (!is_dir(WP_CONTENT_DIR . '/srm-exports/')) {
+            wp_mkdir_p(WP_CONTENT_DIR . '/srm-exports/');
+        }
+        
+        $output = fopen($file_path, 'w');
+        
+        switch ($type) {
+            case 'performance':
+                fputcsv($output, array('Grade', 'Count', 'Average Percentage'));
+                $data = $wpdb->get_results("
+                    SELECT grade, COUNT(*) as count, AVG(percentage) as avg_percentage
+                    FROM {$wpdb->prefix}srm_results
+                    GROUP BY grade
+                    ORDER BY grade
+                ");
+                foreach ($data as $row) {
+                    fputcsv($output, array($row->grade, $row->count, $row->avg_percentage));
+                }
+                break;
+                
+            case 'trends':
+                fputcsv($output, array('Month', 'Count', 'Average Percentage'));
+                $data = $wpdb->get_results("
+                    SELECT DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count, AVG(percentage) as avg_percentage
+                    FROM {$wpdb->prefix}srm_results
+                    WHERE created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+                    GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+                    ORDER BY month DESC
+                ");
+                foreach ($data as $row) {
+                    fputcsv($output, array($row->month, $row->count, $row->avg_percentage));
+                }
+                break;
+                
+            case 'summary':
+                fputcsv($output, array('Metric', 'Value'));
+                $total_students = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}srm_students");
+                $total_results = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}srm_results");
+                $avg_percentage = $wpdb->get_var("SELECT AVG(percentage) FROM {$wpdb->prefix}srm_results");
+                
+                fputcsv($output, array('Total Students', $total_students));
+                fputcsv($output, array('Total Results', $total_results));
+                fputcsv($output, array('Average Percentage', round($avg_percentage, 2)));
+                break;
+        }
+        
+        fclose($output);
+        wp_send_json_success(array('download_url' => content_url('srm-exports/' . $filename)));
+    }
+    
+    public function ajax_preview_template() {
+        check_ajax_referer('srm_template_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+        
+        $license_manager = new SRM_License_Manager();
+        if (!$license_manager->has_premium_access()) {
+            wp_send_json_error('This is a premium feature. Please upgrade to access it.');
+        }
+        
+        $template_id = intval($_POST['template_id']);
+        global $wpdb;
+        
+        $template = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}srm_templates WHERE id = %d",
+            $template_id
+        ));
+        
+        if (!$template) {
+            wp_send_json_error('Template not found');
+        }
+        
+        // Sample data for preview
+        $sample_data = array(
+            '{student_name}' => 'John Doe',
+            '{roll_number}' => '2024001',
+            '{class}' => '10',
+            '{section}' => 'A',
+            '{email}' => 'john.doe@example.com',
+            '{phone}' => '+1234567890',
+            '{exam_name}' => 'Mid-Term Examination',
+            '{exam_date}' => '2024-03-15',
+            '{total_marks}' => '100',
+            '{obtained_marks}' => '85',
+            '{percentage}' => '85',
+            '{grade}' => 'A',
+            '{status}' => 'Pass',
+            '{site_name}' => get_bloginfo('name'),
+            '{site_url}' => get_site_url(),
+            '{current_date}' => date('Y-m-d'),
+            '{result_url}' => get_site_url() . '/result-lookup'
+        );
+        
+        $preview = str_replace(array_keys($sample_data), array_values($sample_data), $template->template_content);
+        
+        wp_send_json_success(array('preview' => $preview));
+    }
+    
+    /**
+     * Calculate grade based on percentage
+     */
+    private function calculate_grade($percentage) {
+        if ($percentage >= 90) return 'A+';
+        if ($percentage >= 80) return 'A';
+        if ($percentage >= 70) return 'B+';
+        if ($percentage >= 60) return 'B';
+        if ($percentage >= 50) return 'C+';
+        if ($percentage >= 40) return 'C';
+        return 'F';
     }
 }
 

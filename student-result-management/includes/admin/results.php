@@ -143,16 +143,16 @@ $students = $wpdb->get_results("SELECT id, roll_number, first_name, last_name FR
 
 <div class="wrap srm-results">
     <?php 
-    // Display contact notice for free users
+    // Display prominent contact notice for free users
     $license_manager = new SRM_License_Manager();
     if (!$license_manager->has_premium_access()) {
-        echo '<div class="notice notice-info" style="margin: 20px 0; padding: 15px; background: #f0f8ff; border-left: 4px solid #0073aa;">';
-        echo '<h3 style="margin: 0 0 10px 0; color: #0073aa;">📞 Contact for Premium Version</h3>';
-        echo '<p style="margin: 0; font-size: 14px;"><strong>To buy the full Version, Contact Jaffar Abbas:</strong></p>';
-        echo '<ul style="margin: 10px 0 0 0; padding-left: 20px;">';
-        echo '<li><strong>WhatsApp:</strong> <a href="https://wa.me/923083430923" target="_blank">+923083430923</a></li>';
-        echo '<li><strong>Email:</strong> <a href="mailto:jaffar381996152@gmail.com">jaffar381996152@gmail.com</a></li>';
-        echo '</ul>';
+        echo '<div class="notice notice-info" style="margin: 20px 0; padding: 20px; background: #f0f8ff; border-left: 4px solid #0073aa; font-size: 16px; text-align: center;">';
+        echo '<h2 style="margin: 0 0 15px 0; color: #0073aa; font-size: 20px;">📞 Contact for Premium Version</h2>';
+        echo '<p style="margin: 0 0 10px 0; font-size: 16px;"><strong>To buy the full Version, Contact Jaffar Abbas:</strong></p>';
+        echo '<div style="display: flex; justify-content: center; gap: 30px; margin-top: 15px;">';
+        echo '<div style="text-align: center;"><strong>WhatsApp:</strong><br><a href="https://wa.me/923083430923" target="_blank" style="font-size: 18px; color: #0073aa;">+923083430923</a></div>';
+        echo '<div style="text-align: center;"><strong>Email:</strong><br><a href="mailto:jaffar381996152@gmail.com" style="font-size: 18px; color: #0073aa;">jaffar381996152@gmail.com</a></div>';
+        echo '</div>';
         echo '</div>';
     }
     ?>

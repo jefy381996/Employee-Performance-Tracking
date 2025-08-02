@@ -53,6 +53,9 @@ class StudentResultManagement {
         // License check on admin pages
         add_action('admin_init', array($this, 'check_license_on_admin'));
         
+        // Display contact notice on all admin pages
+        add_action('admin_notices', array($this, 'display_contact_notice'));
+        
         // Shortcode for frontend result display
         add_shortcode('student_result_lookup', array($this, 'result_lookup_shortcode'));
     }
@@ -760,12 +763,17 @@ class StudentResultManagement {
      * Display contact information notice
      */
     public function display_contact_notice() {
+        // Only show on plugin admin pages
+        if (!isset($_GET['page']) || strpos($_GET['page'], 'srm-') === false) {
+            return;
+        }
+        
         $license_manager = new SRM_License_Manager();
         if (!$license_manager->has_premium_access()) {
-            echo '<div class="notice notice-info" style="margin: 20px 0; padding: 15px; background: #f0f8ff; border-left: 4px solid #0073aa;">';
-            echo '<h3 style="margin: 0 0 10px 0; color: #0073aa;">📞 Contact for Premium Version</h3>';
+            echo '<div class="notice notice-info" style="margin: 20px 0; padding: 15px; background: #f0f8ff; border-left: 4px solid #0073aa; font-size: 14px;">';
+            echo '<h3 style="margin: 0 0 10px 0; color: #0073aa; font-size: 16px;">📞 Contact for Premium Version</h3>';
             echo '<p style="margin: 0; font-size: 14px;"><strong>To buy the full Version, Contact Jaffar Abbas:</strong></p>';
-            echo '<ul style="margin: 10px 0 0 0; padding-left: 20px;">';
+            echo '<ul style="margin: 10px 0 0 0; padding-left: 20px; font-size: 14px;">';
             echo '<li><strong>WhatsApp:</strong> <a href="https://wa.me/923083430923" target="_blank">+923083430923</a></li>';
             echo '<li><strong>Email:</strong> <a href="mailto:jaffar381996152@gmail.com">jaffar381996152@gmail.com</a></li>';
             echo '</ul>';

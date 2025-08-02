@@ -52,6 +52,27 @@ if ($_POST) {
             }
         }
         
+        // Handle certificate PDF upload (premium feature)
+        $certificate_pdf = '';
+        if (isset($_FILES['certificate_pdf']) && $_FILES['certificate_pdf']['error'] === UPLOAD_ERR_OK) {
+            $license_manager = new SRM_License_Manager();
+            if ($license_manager->has_premium_access()) {
+                $upload_dir = wp_upload_dir();
+                $target_dir = $upload_dir['basedir'] . '/srm-certificates/';
+                wp_mkdir_p($target_dir);
+                
+                $file_extension = strtolower(pathinfo($_FILES['certificate_pdf']['name'], PATHINFO_EXTENSION));
+                if ($file_extension === 'pdf') {
+                    $filename = 'certificate_' . time() . '_' . sanitize_file_name($_FILES['certificate_pdf']['name']);
+                    $target_file = $target_dir . $filename;
+                    
+                    if (move_uploaded_file($_FILES['certificate_pdf']['tmp_name'], $target_file)) {
+                        $certificate_pdf = $upload_dir['baseurl'] . '/srm-certificates/' . $filename;
+                    }
+                }
+            }
+        }
+        
         $result_data = array(
             'student_id' => intval($_POST['student_id']),
             'exam_name' => sanitize_text_field($_POST['exam_name']),
@@ -61,7 +82,8 @@ if ($_POST) {
             'percentage' => $percentage,
             'grade' => $grade,
             'status' => $status,
-            'subjects' => json_encode($subjects)
+            'subjects' => json_encode($subjects),
+            'certificate_pdf' => $certificate_pdf
         );
         
         if ($action === 'add') {
@@ -157,7 +179,7 @@ $students = $wpdb->get_results("SELECT id, roll_number, first_name, last_name FR
     <?php if ($action === 'add' || $action === 'edit'): ?>
         <!-- Add/Edit Form -->
         <div class="srm-form-container">
-            <form method="post" class="srm-result-form">
+            <form method="post" class="srm-result-form" enctype="multipart/form-data">
                 <?php wp_nonce_field('srm_result_action', 'srm_nonce'); ?>
                 
                 <table class="form-table">
@@ -214,6 +236,35 @@ $students = $wpdb->get_results("SELECT id, roll_number, first_name, last_name FR
                         <td>
                             <input type="number" name="obtained_marks" id="obtained_marks" class="regular-text" 
                                    value="<?php echo $result ? esc_attr($result->obtained_marks) : ''; ?>" required>
+                        </td>
+                    </tr>
+                    <?php 
+                    // Check if user has premium access for certificate PDF upload
+                    $license_manager = new SRM_License_Manager();
+                    $has_premium = $license_manager->has_premium_access();
+                    ?>
+                    <tr>
+                        <th scope="row">
+                            <label for="certificate_pdf"><?php _e('Certificate PDF', 'student-result-management'); ?></label>
+                        </th>
+                        <td>
+                            <?php if ($has_premium): ?>
+                                <input type="file" name="certificate_pdf" id="certificate_pdf" accept=".pdf">
+                                <?php if ($result && !empty($result->certificate_pdf)): ?>
+                                    <br><br>
+                                    <a href="<?php echo esc_url($result->certificate_pdf); ?>" target="_blank" class="button">
+                                        <?php _e('View Current Certificate', 'student-result-management'); ?>
+                                    </a>
+                                    <p class="description"><?php _e('Current certificate PDF. Upload a new PDF to replace it.', 'student-result-management'); ?></p>
+                                <?php endif; ?>
+                                <p class="description"><?php _e('Upload a certificate PDF for this result (Premium feature). Students can download this certificate when checking their results.', 'student-result-management'); ?></p>
+                            <?php else: ?>
+                                <p class="description" style="color: #d63638;">
+                                    <strong><?php _e('Premium Feature:', 'student-result-management'); ?></strong> 
+                                    <?php _e('Certificate PDF upload is available with premium license. ', 'student-result-management'); ?>
+                                    <a href="<?php echo admin_url('admin.php?page=srm-premium'); ?>"><?php _e('Upgrade to Premium', 'student-result-management'); ?></a>
+                                </p>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 </table>

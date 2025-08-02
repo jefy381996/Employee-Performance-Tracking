@@ -38,7 +38,7 @@ class StudentResultManagement {
         add_action('wp_ajax_srm_get_result', array($this, 'ajax_get_result'));
         add_action('wp_ajax_nopriv_srm_get_result', array($this, 'ajax_get_result'));
         add_action('wp_ajax_srm_upload_csv', array($this, 'ajax_upload_csv'));
-        add_action('wp_ajax_srm_generate_pdf', array($this, 'ajax_generate_pdf'));
+        add_action('wp_ajax_srm_download_pdf', array($this, 'ajax_download_pdf'));
         add_action('wp_ajax_srm_create_tables', array($this, 'ajax_create_tables'));
         add_action('wp_ajax_srm_generate_license', array($this, 'ajax_generate_license'));
         add_action('wp_ajax_srm_check_all_licenses', array($this, 'ajax_check_all_licenses'));
@@ -46,7 +46,6 @@ class StudentResultManagement {
         // Include license manager and feature control system
         require_once SRM_PLUGIN_PATH . 'includes/admin/license-manager.php';
         require_once SRM_PLUGIN_PATH . 'includes/admin/feature-control.php';
-        require_once SRM_PLUGIN_PATH . 'includes/admin/pdf-generator.php';
         
         // Shortcode for frontend result display
         add_shortcode('student_result_lookup', array($this, 'result_lookup_shortcode'));
@@ -120,6 +119,7 @@ class StudentResultManagement {
             grade varchar(10),
             status enum('pass','fail','pending') DEFAULT 'pending',
             subjects text,
+            certificate_pdf varchar(255) DEFAULT NULL,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
@@ -600,9 +600,9 @@ class StudentResultManagement {
     }
     
     /**
-     * AJAX handler for PDF generation (Premium feature)
+     * AJAX handler for PDF download (Premium feature)
      */
-    public function ajax_generate_pdf() {
+    public function ajax_download_pdf() {
         check_ajax_referer('srm_nonce', 'nonce');
         
         // Check if user has premium access
@@ -611,21 +611,22 @@ class StudentResultManagement {
             wp_send_json_error(__('This is a premium feature. Please upgrade to access it.', 'student-result-management'));
         }
         
-        $student_id = intval($_POST['student_id']);
         $result_id = intval($_POST['result_id']);
         
-        // Generate PDF using the PDF generator
-        $pdf_generator = new SRM_PDF_Generator();
-        $result = $pdf_generator->generate_result_pdf($student_id, $result_id);
+        global $wpdb;
+        $result = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}srm_results WHERE id = %d",
+            $result_id
+        ));
         
-        if ($result['success']) {
-            wp_send_json_success(array(
-                'message' => $result['message'],
-                'download_url' => $result['download_url']
-            ));
-        } else {
-            wp_send_json_error($result['message']);
+        if (!$result || empty($result->certificate_pdf)) {
+            wp_send_json_error(__('No certificate PDF found for this result.', 'student-result-management'));
         }
+        
+        wp_send_json_success(array(
+            'message' => __('PDF download ready!', 'student-result-management'),
+            'download_url' => $result->certificate_pdf
+        ));
     }
     
     /**
@@ -754,16 +755,13 @@ class StudentResultManagement {
         }
         
         $license_key = $license_manager->generate_license_key();
-        $result = $license_manager->activate_license($license_key);
         
-        if ($result['success']) {
-            wp_send_json_success(array(
-                'license_key' => $license_key,
-                'message' => 'License generated and activated successfully!'
-            ));
-        } else {
-            wp_send_json_error($result['message']);
-        }
+        // For demo purposes, we'll simulate successful activation
+        // In a real system, you'd validate the license with your server
+        wp_send_json_success(array(
+            'license_key' => $license_key,
+            'message' => 'License generated successfully!'
+        ));
     }
     
     /**

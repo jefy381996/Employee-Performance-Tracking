@@ -50,6 +50,7 @@ $tables_sql = array(
         status enum('pass','fail','pending') DEFAULT 'pending',
         subjects text,
         remarks text,
+        certificate_pdf varchar(255) DEFAULT NULL,
         created_at datetime DEFAULT CURRENT_TIMESTAMP,
         updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (id),

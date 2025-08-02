@@ -211,14 +211,27 @@ jQuery(document).ready(function($) {
         html += '<?php _e('Print Result', 'student-result-management'); ?>';
         html += '</button>';
         
-        // Check if user has premium access
+        // Check if user has premium access and if certificate PDF exists
         <?php 
         $license_manager = new SRM_License_Manager();
         $has_premium = $license_manager->has_premium_access();
         ?>
         
-        if (<?php echo $has_premium ? 'true' : 'false'; ?>) {
-            html += '<button type="button" class="srm-btn srm-btn-primary srm-download-pdf" data-student-id="' + student.id + '" data-result-id="' + results[0].id + '">';
+        // Check if any result has a certificate PDF
+        var hasCertificate = false;
+        results.forEach(function(result) {
+            if (result.certificate_pdf) {
+                hasCertificate = true;
+            }
+        });
+        
+        if (<?php echo $has_premium ? 'true' : 'false'; ?> && hasCertificate) {
+            // Find the first result with a certificate
+            var resultWithCertificate = results.find(function(result) {
+                return result.certificate_pdf;
+            });
+            
+            html += '<button type="button" class="srm-btn srm-btn-primary srm-download-pdf" data-result-id="' + resultWithCertificate.id + '">';
             html += '<span class="srm-btn-icon">';
             html += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">';
             html += '<path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
@@ -226,7 +239,7 @@ jQuery(document).ready(function($) {
             html += '<path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
             html += '</svg>';
             html += '</span>';
-            html += '<?php _e('Download PDF', 'student-result-management'); ?>';
+            html += '<?php _e('Download Certificate', 'student-result-management'); ?>';
             html += '</button>';
         } else {
             html += '<button type="button" class="srm-btn srm-btn-primary srm-download-pdf" disabled>';
@@ -237,7 +250,7 @@ jQuery(document).ready(function($) {
             html += '<path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
             html += '</svg>';
             html += '</span>';
-            html += '<?php _e('Download PDF', 'student-result-management'); ?> <span class="srm-premium-badge"><?php _e('Premium', 'student-result-management'); ?></span>';
+            html += '<?php _e('Download Certificate', 'student-result-management'); ?> <span class="srm-premium-badge"><?php _e('Premium', 'student-result-management'); ?></span>';
             html += '</button>';
         }
         html += '</div>';
@@ -258,23 +271,21 @@ jQuery(document).ready(function($) {
     // Handle PDF download (premium feature)
     $(document).on('click', '.srm-download-pdf', function() {
         var $btn = $(this);
-        var studentId = $btn.data('student-id');
         var resultId = $btn.data('result-id');
         
-        if (!studentId || !resultId) {
-            alert('<?php _e('Unable to generate PDF. Missing student or result information.', 'student-result-management'); ?>');
+        if (!resultId) {
+            alert('<?php _e('Unable to download certificate. Missing result information.', 'student-result-management'); ?>');
             return;
         }
         
         // Disable button and show loading
-        $btn.prop('disabled', true).text('<?php _e('Generating PDF...', 'student-result-management'); ?>');
+        $btn.prop('disabled', true).text('<?php _e('Downloading Certificate...', 'student-result-management'); ?>');
         
         $.ajax({
             url: srm_ajax.ajax_url,
             type: 'POST',
             data: {
-                action: 'srm_generate_pdf',
-                student_id: studentId,
+                action: 'srm_download_pdf',
                 result_id: resultId,
                 nonce: srm_ajax.nonce
             },
@@ -283,22 +294,22 @@ jQuery(document).ready(function($) {
                     // Create download link
                     var link = document.createElement('a');
                     link.href = response.data.download_url;
-                    link.download = 'result_certificate.pdf';
+                    link.download = 'certificate.pdf';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
                     
-                    alert('<?php _e('PDF generated successfully!', 'student-result-management'); ?>');
+                    alert('<?php _e('Certificate downloaded successfully!', 'student-result-management'); ?>');
                 } else {
                     alert('Error: ' + response.data);
                 }
             },
             error: function() {
-                alert('<?php _e('An error occurred while generating PDF. Please try again.', 'student-result-management'); ?>');
+                alert('<?php _e('An error occurred while downloading certificate. Please try again.', 'student-result-management'); ?>');
             },
             complete: function() {
                 // Re-enable button
-                $btn.prop('disabled', false).html('<span class="srm-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><?php _e('Download PDF', 'student-result-management'); ?>');
+                $btn.prop('disabled', false).html('<span class="srm-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><?php _e('Download Certificate', 'student-result-management'); ?>');
             }
         });
     });

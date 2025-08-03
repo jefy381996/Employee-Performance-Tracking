@@ -77,6 +77,11 @@ class SRM_License_Manager {
             return true;
         }
         
+        // First validate the license key format
+        if (!$this->validate_license_format($license_key)) {
+            return false;
+        }
+        
         // Check if it's a domain-bound license
         if (strpos($license_key, '.') !== false) {
             $parts = explode('.', $license_key);
@@ -144,6 +149,55 @@ class SRM_License_Manager {
                         'success' => false, 
                         'message' => "This license key is bound to domain '$domain_part' but you're trying to activate it on '$current_domain'. Each license key is domain-specific."
                     );
+                }
+                
+                // If domain matches but we got here, it means format validation failed
+                if (!$this->validate_license_format($license_key)) {
+                    $key_part = $parts[0];
+                    $error_details = array();
+                    
+                    if (strlen($key_part) !== 13) {
+                        $error_details[] = "Key part must be exactly 13 characters (found " . strlen($key_part) . ")";
+                    }
+                    
+                    if (strlen($key_part) >= 1) {
+                        $first_letter = strtoupper($key_part[0]);
+                        if (!in_array($first_letter, array('B', 'J', 'N', 'F', 'A', 'T'))) {
+                            $error_details[] = "First letter must be B, J, N, F, A, or T (found '$first_letter')";
+                        }
+                    }
+                    
+                    if (strlen($key_part) >= 4) {
+                        $fourth_letter = strtoupper($key_part[3]);
+                        if (!in_array($fourth_letter, array('H', 'L', 'M', 'A', 'S'))) {
+                            $error_details[] = "4th letter must be H, L, M, A, or S (found '$fourth_letter')";
+                        }
+                    }
+                    
+                    if (strlen($key_part) >= 13) {
+                        $last_char = $key_part[12];
+                        if (!ctype_digit($last_char)) {
+                            $error_details[] = "13th character must be a number 0-9 (found '$last_char')";
+                        }
+                    }
+                    
+                    // Check special character
+                    if (strlen($key_part) >= 10) {
+                        $special_chars = array('!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '+', '=', '[', ']', '{', '}', '|', '\\', ':', ';', '"', '\'', '<', '>', ',', '.', '?', '/');
+                        $has_special = false;
+                        for ($i = 7; $i <= 9; $i++) {
+                            if (isset($key_part[$i]) && in_array($key_part[$i], $special_chars)) {
+                                $has_special = true;
+                                break;
+                            }
+                        }
+                        if (!$has_special) {
+                            $error_details[] = "Positions 8, 9, or 10 must contain a special character (*, &, #, etc.)";
+                        }
+                    }
+                    
+                    $message = "License key format is invalid for domain '$domain_part':\n" . implode("\n", $error_details);
+                    return array('success' => false, 'message' => $message);
                 }
             }
         }

@@ -44,6 +44,8 @@ class StudentResultManagement {
         add_action('wp_ajax_srm_import_results_csv', array($this, 'ajax_import_results_csv'));
         add_action('wp_ajax_srm_export_analytics', array($this, 'ajax_export_analytics'));
         add_action('wp_ajax_srm_preview_template', array($this, 'ajax_preview_template'));
+        add_action('wp_ajax_srm_activate_license', array($this, 'ajax_activate_license'));
+        add_action('wp_ajax_srm_deactivate_license', array($this, 'ajax_deactivate_license'));
 
         
         // Include license manager and feature control system
@@ -1289,6 +1291,52 @@ class StudentResultManagement {
         if ($percentage >= 50) return 'C+';
         if ($percentage >= 40) return 'C';
         return 'F';
+    }
+    
+    /**
+     * AJAX handler for license activation
+     */
+    public function ajax_activate_license() {
+        // Check nonce for security
+        if (!wp_verify_nonce($_POST['nonce'], 'srm_license_nonce')) {
+            wp_die(json_encode(array('success' => false, 'message' => 'Security check failed.')));
+        }
+        
+        // Check user capabilities
+        if (!current_user_can('manage_options')) {
+            wp_die(json_encode(array('success' => false, 'message' => 'Insufficient permissions.')));
+        }
+        
+        $license_key = sanitize_text_field($_POST['license_key']);
+        
+        if (empty($license_key)) {
+            wp_die(json_encode(array('success' => false, 'message' => 'License key cannot be empty.')));
+        }
+        
+        $license_manager = new SRM_License_Manager();
+        $result = $license_manager->activate_license($license_key);
+        
+        wp_die(json_encode($result));
+    }
+    
+    /**
+     * AJAX handler for license deactivation
+     */
+    public function ajax_deactivate_license() {
+        // Check nonce for security
+        if (!wp_verify_nonce($_POST['nonce'], 'srm_license_nonce')) {
+            wp_die(json_encode(array('success' => false, 'message' => 'Security check failed.')));
+        }
+        
+        // Check user capabilities
+        if (!current_user_can('manage_options')) {
+            wp_die(json_encode(array('success' => false, 'message' => 'Insufficient permissions.')));
+        }
+        
+        $license_manager = new SRM_License_Manager();
+        $result = $license_manager->deactivate_license();
+        
+        wp_die(json_encode($result));
     }
 }
 

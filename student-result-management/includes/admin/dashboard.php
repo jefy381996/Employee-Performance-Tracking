@@ -177,7 +177,10 @@ $recent_results = $wpdb->get_results("
         </div>
         
         <!-- Premium Features Promotion -->
-        <?php if (!$is_owner): ?>
+        <?php 
+        $license_manager = new SRM_License_Manager();
+        $has_premium = $license_manager->has_premium_access();
+        if (!$has_premium): ?>
             <div class="srm-premium-promo">
                 <h3><?php _e('Unlock Premium Features', 'student-result-management'); ?></h3>
                 <p><?php _e('Get access to advanced features like PDF result cards, CSV import/export, student profile images, and more!', 'student-result-management'); ?></p>
@@ -215,8 +218,17 @@ $recent_results = $wpdb->get_results("
                 </div>
                 <div class="srm-status-item">
                     <span class="srm-status-label"><?php _e('License Status:', 'student-result-management'); ?></span>
-                    <span class="srm-status-value <?php echo $is_owner ? 'status-premium' : 'status-free'; ?>">
-                        <?php echo $is_owner ? __('Owner (Full Access)', 'student-result-management') : __('Free Version', 'student-result-management'); ?>
+                    <span class="srm-status-value <?php echo $has_premium ? 'status-premium' : 'status-free'; ?>">
+                        <?php 
+                        $license_status = $license_manager->get_license_status();
+                        if ($license_status === 'owner') {
+                            echo __('Owner (Full Access)', 'student-result-management');
+                        } elseif ($license_status === 'premium') {
+                            echo __('Premium (Full Access)', 'student-result-management');
+                        } else {
+                            echo __('Free Version', 'student-result-management');
+                        }
+                        ?>
                     </span>
                 </div>
             </div>

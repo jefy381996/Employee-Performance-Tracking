@@ -766,6 +766,8 @@ class StudentResultManagement {
             wp_send_json_error(__('No certificate PDF found for this result.', 'student-result-management'));
         }
         
+        // Allow both free and premium students to download certificates
+        // Only premium admins can upload certificates, but all students can download them
         wp_send_json_success(array(
             'message' => __('PDF download ready!', 'student-result-management'),
             'download_url' => $result->certificate_pdf

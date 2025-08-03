@@ -739,12 +739,6 @@ class StudentResultManagement {
     public function ajax_download_pdf() {
         check_ajax_referer('srm_nonce', 'nonce');
         
-        // Check if user has premium access
-        $license_manager = new SRM_License_Manager();
-        if (!$license_manager->has_premium_access()) {
-            wp_send_json_error(__('This is a premium feature. Please upgrade to access it.', 'student-result-management'));
-        }
-        
         $result_id = intval($_POST['result_id']);
         
         global $wpdb;

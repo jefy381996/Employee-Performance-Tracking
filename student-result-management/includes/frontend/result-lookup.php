@@ -211,12 +211,6 @@ jQuery(document).ready(function($) {
         html += '<?php _e('Print Result', 'student-result-management'); ?>';
         html += '</button>';
         
-        // Check if user has premium access and if certificate PDF exists
-        <?php 
-        $license_manager = new SRM_License_Manager();
-        $has_premium = $license_manager->has_premium_access();
-        ?>
-        
         // Check if any result has a certificate PDF
         var hasCertificate = false;
         results.forEach(function(result) {
@@ -225,7 +219,7 @@ jQuery(document).ready(function($) {
             }
         });
         
-        if (<?php echo $has_premium ? 'true' : 'false'; ?> && hasCertificate) {
+        if (hasCertificate) {
             // Find the first result with a certificate
             var resultWithCertificate = results.find(function(result) {
                 return result.certificate_pdf;
@@ -250,7 +244,7 @@ jQuery(document).ready(function($) {
             html += '<path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
             html += '</svg>';
             html += '</span>';
-            html += '<?php _e('Download Certificate', 'student-result-management'); ?> <span class="srm-premium-badge"><?php _e('Premium', 'student-result-management'); ?></span>';
+            html += '<?php _e('No Certificate Available', 'student-result-management'); ?>';
             html += '</button>';
         }
         html += '</div>';

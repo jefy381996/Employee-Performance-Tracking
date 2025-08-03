@@ -21,6 +21,13 @@ class SRM_License_Manager {
         $domain = preg_replace('/:\d+$/', '', $domain);
         // Remove www. prefix for consistency
         $domain = preg_replace('/^www\./', '', $domain);
+        
+        // Handle localhost development
+        if ($domain === 'localhost' || strpos($domain, '127.0.0.1') !== false) {
+            // For localhost, use 'localhost.dev' as the domain
+            $domain = 'localhost.dev';
+        }
+        
         return strtolower($domain);
     }
     
@@ -209,25 +216,25 @@ class SRM_License_Manager {
                 
                 // Validate the key part follows 13-digit format
                 if (strlen($key_part) === 13) {
-                    // Check first letter (B, J, N, A, F, or T)
+                    // Check first letter (B, J, N, F, A, or T)
                     $first_letter = strtoupper($key_part[0]);
-                    $valid_first_letters = array('B', 'J', 'N', 'A', 'F', 'T');
+                    $valid_first_letters = array('B', 'J', 'N', 'F', 'A', 'T');
                     
-                    // Check 4th letter (X, G, K, D, E, or P)
+                    // Check 4th letter (H, L, M, A, or S)
                     $fourth_letter = strtoupper($key_part[3]);
-                    $valid_fourth_letters = array('X', 'G', 'K', 'D', 'E', 'P');
+                    $valid_fourth_letters = array('H', 'L', 'M', 'A', 'S');
                     
                     // Check 8th, 9th, or 10th letter (special character)
                     $special_chars = array('!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '+', '=', '[', ']', '{', '}', '|', '\\', ':', ';', '"', '\'', '<', '>', ',', '.', '?', '/');
                     
-                    // Check 13th letter (B, G, N, K, F, or P)
-                    $last_letter = strtoupper($key_part[12]);
-                    $valid_last_letters = array('B', 'G', 'N', 'K', 'F', 'P');
+                    // Check 13th letter (must be a number 0-9)
+                    $last_char = $key_part[12];
+                    $is_last_number = ctype_digit($last_char);
                     
                     // Validate all conditions
                     if (in_array($first_letter, $valid_first_letters) &&
                         in_array($fourth_letter, $valid_fourth_letters) &&
-                        in_array($last_letter, $valid_last_letters)) {
+                        $is_last_number) {
                         
                         // Check if any of the 8th, 9th, or 10th positions has a special character
                         $has_special_char = false;

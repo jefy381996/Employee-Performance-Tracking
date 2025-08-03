@@ -30,26 +30,81 @@ if ($_POST && isset($_POST['submit_license_request'])) {
         if (empty($customer_name) || empty($customer_email) || empty($domain_name)) {
             $error = __('Please fill in all required fields.', 'student-result-management');
         } else {
-            // Send email to owner
-            $to = 'jaffar381996152@gmail.com';
-            $subject = 'New Premium License Request - Student Result Management';
+            // Store license request in database
+            global $wpdb;
             
-            $message_body = "New premium license request received:\n\n";
-            $message_body .= "Customer Name: $customer_name\n";
-            $message_body .= "Customer Email: $customer_email\n";
-            $message_body .= "Customer Phone: $customer_phone\n";
-            $message_body .= "Domain Name: $domain_name\n";
-            $message_body .= "Current Site URL: " . get_site_url() . "\n";
-            $message_body .= "Additional Information: $additional_info\n\n";
-            $message_body .= "Please generate a license key in the format: XYGh675*UGTFM.$domain_name\n";
-            $message_body .= "And send it to the customer along with installation instructions.";
+            $license_manager = new SRM_License_Manager();
+            $current_domain = $license_manager->get_current_domain();
             
-            $headers = array('Content-Type: text/plain; charset=UTF-8');
+            $table_name = $wpdb->prefix . 'srm_license_requests';
             
-            if (wp_mail($to, $subject, $message_body, $headers)) {
-                $message = __('License request submitted successfully! We will contact you soon with your premium license key.', 'student-result-management');
+            // Create table if it doesn't exist
+            $charset_collate = $wpdb->get_charset_collate();
+            $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+                id int(11) NOT NULL AUTO_INCREMENT,
+                customer_name varchar(255) NOT NULL,
+                customer_email varchar(255) NOT NULL,
+                customer_phone varchar(50),
+                domain_name varchar(255) NOT NULL,
+                current_site_url varchar(500) NOT NULL,
+                current_domain varchar(255) NOT NULL,
+                additional_info text,
+                request_date datetime DEFAULT CURRENT_TIMESTAMP,
+                status varchar(50) DEFAULT 'pending',
+                license_key varchar(500),
+                PRIMARY KEY (id)
+            ) $charset_collate;";
+            
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+            
+            // Insert the request
+            $result = $wpdb->insert(
+                $table_name,
+                array(
+                    'customer_name' => $customer_name,
+                    'customer_email' => $customer_email,
+                    'customer_phone' => $customer_phone,
+                    'domain_name' => $domain_name,
+                    'current_site_url' => get_site_url(),
+                    'current_domain' => $current_domain,
+                    'additional_info' => $additional_info,
+                    'status' => 'pending'
+                ),
+                array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+            );
+            
+            if ($result !== false) {
+                $request_id = $wpdb->insert_id;
+                
+                // Try to send email notification (but don't fail if it doesn't work)
+                $to = 'jaffar381996152@gmail.com';
+                $subject = 'New Premium License Request - Student Result Management (#' . $request_id . ')';
+                
+                $message_body = "New premium license request received:\n\n";
+                $message_body .= "Request ID: #$request_id\n";
+                $message_body .= "Customer Name: $customer_name\n";
+                $message_body .= "Customer Email: $customer_email\n";
+                $message_body .= "Customer Phone: $customer_phone\n";
+                $message_body .= "Requested Domain: $domain_name\n";
+                $message_body .= "Current Site URL: " . get_site_url() . "\n";
+                $message_body .= "Current Domain: $current_domain\n";
+                $message_body .= "Additional Information: $additional_info\n\n";
+                $message_body .= "Required License Key Pattern:\n";
+                $message_body .= "Format: [B|J|N|F|A|T]XX[H|L|M|A|S]XXXX[*|special]XX[0-9].$domain_name\n";
+                $message_body .= "Example: BxxHxxxxx*xx1.$domain_name\n\n";
+                $message_body .= "Please generate and send the license key to the customer.";
+                
+                $headers = array('Content-Type: text/plain; charset=UTF-8');
+                wp_mail($to, $subject, $message_body, $headers); // Don't check result
+                
+                $message = sprintf(
+                    __('License request submitted successfully! Request ID: #%d. We will process your request and contact you at %s with your premium license key.', 'student-result-management'),
+                    $request_id,
+                    $customer_email
+                );
             } else {
-                $error = __('Failed to submit license request. Please contact us directly.', 'student-result-management');
+                $error = __('Failed to submit license request. Please try again or contact us directly at jaffar381996152@gmail.com', 'student-result-management');
             }
         }
     }
@@ -161,7 +216,17 @@ if ($_POST && isset($_POST['submit_license_request'])) {
                     <td>
                         <input type="text" name="domain_name" id="domain_name" class="regular-text" 
                                value="<?php echo isset($_POST['domain_name']) ? esc_attr($_POST['domain_name']) : esc_attr($domain_info['domain']); ?>" required>
-                        <p class="description"><?php _e('The domain where you want to activate the premium license (e.g., mysite.com).', 'student-result-management'); ?></p>
+                        <p class="description">
+                            <?php _e('The domain where you want to activate the premium license (e.g., mysite.com).', 'student-result-management'); ?><br>
+                            <strong><?php _e('Current domain detected:', 'student-result-management'); ?></strong> <?php echo esc_html($domain_info['domain']); ?><br>
+                            <small style="color: #666;">
+                                <?php if ($domain_info['domain'] === 'localhost.dev'): ?>
+                                    <?php _e('For localhost development, use "localhost.dev" as your domain.', 'student-result-management'); ?>
+                                <?php else: ?>
+                                    <?php _e('License keys are domain-specific and cannot be transferred between domains.', 'student-result-management'); ?>
+                                <?php endif; ?>
+                            </small>
+                        </p>
                     </td>
                 </tr>
                 

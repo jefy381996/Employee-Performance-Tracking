@@ -46,8 +46,8 @@ class SRM_License_Manager {
             return ($current_user_id == $plugin_owner);
         }
         
-        // Only return true if user is owner AND has owner key activated
-        return false;
+        // Return true if user is set as owner (for backward compatibility)
+        return ($current_user_id == $plugin_owner);
     }
     
     /**
@@ -213,7 +213,7 @@ class SRM_License_Manager {
     private function is_valid_license_key($key) {
         // Check if it's the owner key
         if ($key === $this->owner_key) {
-            return false; // This should be handled separately
+            return true; // Owner key is valid
         }
         
         // Check if it's exactly 13 characters

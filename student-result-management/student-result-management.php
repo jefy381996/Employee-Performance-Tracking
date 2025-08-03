@@ -1,13 +1,19 @@
 <?php
 /**
  * Plugin Name: Student Result Management System
- * Plugin URI: https://yourwebsite.com/student-result-management
+ * Plugin URI: https://github.com/jefy381996/Employee-Performance-Tracking
  * Description: A comprehensive student result management system with free and premium features. Manage student records, marks, and generate beautiful result cards.
  * Version: 2.0
+ * Requires at least: 5.0
+ * Tested up to: 6.4
+ * Requires PHP: 7.4
  * Author: M. Jaffar Abbas
+ * Author URI: https://github.com/jefy381996
  * License: GPL v2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: student-result-management
  * Domain Path: /languages
+ * Network: true
  */
 
 // Prevent direct access
@@ -77,9 +83,12 @@ class StudentResultManagement {
         delete_option('srm_license_status');
         delete_option('srm_plugin_owner');
         
-        // Set default license status to free
+        // Set default license status to free (NOT owner)
         update_option('srm_license_key', '');
         update_option('srm_license_status', 'free');
+        
+        // Do NOT set the current user as owner automatically
+        // Users must manually activate premium license
         
         // Verify tables were created
         $this->verify_tables();

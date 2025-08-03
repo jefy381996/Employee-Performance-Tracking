@@ -200,9 +200,50 @@ class SRM_License_Manager {
             return true;
         }
         
-        // Check domain-bound format: XYGh675*UGTFM.domainname.com
-        if (preg_match('/^[A-Za-z0-9*]{10,}\.[a-z0-9.-]+\.[a-z]{2,}$/', $license_key)) {
-            return true;
+        // Check if it's a domain-bound license key
+        if (strpos($license_key, '.') !== false) {
+            $parts = explode('.', $license_key);
+            if (count($parts) >= 2) {
+                $key_part = $parts[0]; // The part before the domain
+                $domain_part = implode('.', array_slice($parts, 1)); // The domain part
+                
+                // Validate the key part follows 13-digit format
+                if (strlen($key_part) === 13) {
+                    // Check first letter (B, J, N, A, F, or T)
+                    $first_letter = strtoupper($key_part[0]);
+                    $valid_first_letters = array('B', 'J', 'N', 'A', 'F', 'T');
+                    
+                    // Check 4th letter (X, G, K, D, E, or P)
+                    $fourth_letter = strtoupper($key_part[3]);
+                    $valid_fourth_letters = array('X', 'G', 'K', 'D', 'E', 'P');
+                    
+                    // Check 8th, 9th, or 10th letter (special character)
+                    $special_chars = array('!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '+', '=', '[', ']', '{', '}', '|', '\\', ':', ';', '"', '\'', '<', '>', ',', '.', '?', '/');
+                    
+                    // Check 13th letter (B, G, N, K, F, or P)
+                    $last_letter = strtoupper($key_part[12]);
+                    $valid_last_letters = array('B', 'G', 'N', 'K', 'F', 'P');
+                    
+                    // Validate all conditions
+                    if (in_array($first_letter, $valid_first_letters) &&
+                        in_array($fourth_letter, $valid_fourth_letters) &&
+                        in_array($last_letter, $valid_last_letters)) {
+                        
+                        // Check if any of the 8th, 9th, or 10th positions has a special character
+                        $has_special_char = false;
+                        for ($i = 7; $i <= 9; $i++) {
+                            if (in_array($key_part[$i], $special_chars)) {
+                                $has_special_char = true;
+                                break;
+                            }
+                        }
+                        
+                        if ($has_special_char) {
+                            return true;
+                        }
+                    }
+                }
+            }
         }
         
         return false;

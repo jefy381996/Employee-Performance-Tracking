@@ -514,6 +514,15 @@ class StudentResultManagement {
             array($this, 'admin_license_request_page')
         );
         
+        add_submenu_page(
+            'student-results',
+            __('Test License System', 'student-result-management'),
+            __('Test License System', 'student-result-management'),
+            'manage_options',
+            'srm-test-license',
+            array($this, 'admin_test_license_page')
+        );
+        
 
     }
     
@@ -620,6 +629,10 @@ class StudentResultManagement {
     
     public function admin_license_request_page() {
         include SRM_PLUGIN_PATH . 'includes/admin/license-request.php';
+    }
+    
+    public function admin_test_license_page() {
+        include SRM_PLUGIN_PATH . 'test-license-system.php';
     }
     
     public function admin_csv_import_export_page() {

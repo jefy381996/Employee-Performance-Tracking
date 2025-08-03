@@ -12,15 +12,8 @@ if (isset($_POST['generate_license'])) {
     $customer_name = sanitize_text_field($_POST['customer_name']);
     $domain_name = sanitize_text_field($_POST['domain_name']);
     
-    // Generate random string for license key
-    $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-    $random_string = '';
-    for ($i = 0; $i < 12; $i++) {
-        $random_string .= $chars[rand(0, strlen($chars) - 1)];
-    }
-    
-    // Create domain-bound license key
-    $license_key = $random_string . '.' . $domain_name;
+    // Generate license key following the 13-digit format
+    $license_key = generate_13_digit_key($domain_name);
     
     echo "<div style='background: #fff; border: 1px solid #ccd0d4; border-radius: 4px; padding: 20px; margin: 20px 0; box-shadow: 0 1px 1px rgba(0,0,0,.04);'>";
     echo "<h3>✅ License Key Generated</h3>";
@@ -83,13 +76,16 @@ if (isset($_POST['generate_license'])) {
     echo "</form>";
 }
 
-echo "<h3>📋 License Key Format</h3>";
+echo "<h3>📋 License Key Format (13-Digit)</h3>";
 echo "<div style='background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 20px; margin: 20px 0;'>";
-echo "<h4>Format: <code>RANDOM_STRING.DOMAIN.COM</code></h4>";
+echo "<h4>Format: <code>XXXXXXXXXXXXX.DOMAIN.COM</code></h4>";
 echo "<ul>";
-echo "<li><strong>Random String:</strong> 12 characters (letters, numbers, symbols)</li>";
+echo "<li><strong>First letter:</strong> B, J, N, A, F, or T</li>";
+echo "<li><strong>4th letter:</strong> X, G, K, D, E, or P</li>";
+echo "<li><strong>8th, 9th, or 10th letter:</strong> Special character (!@#$%^&* etc.)</li>";
+echo "<li><strong>13th letter:</strong> B, G, N, K, F, or P</li>";
 echo "<li><strong>Domain:</strong> Customer's domain name</li>";
-echo "<li><strong>Example:</strong> <code>ABC123!DEF456.example.com</code></li>";
+echo "<li><strong>Example:</strong> <code>BJKmNpQrStU*example.com</code></li>";
 echo "</ul>";
 echo "</div>";
 
@@ -117,4 +113,48 @@ echo "<li><strong>Send to Customer:</strong> Email the license file and instruct
 echo "<li><strong>Customer Installs:</strong> Customer uploads file and activates</li>";
 echo "<li><strong>Premium Unlocked:</strong> All premium features available</li>";
 echo "</ol>";
+
+// Function to generate 13-digit license key
+function generate_13_digit_key($domain) {
+    // Valid characters for different positions
+    $first_letters = array('B', 'J', 'N', 'A', 'F', 'T');
+    $fourth_letters = array('X', 'G', 'K', 'D', 'E', 'P');
+    $special_chars = array('!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '+', '=', '[', ']', '{', '}', '|', '\\', ':', ';', '"', '\'', '<', '>', ',', '.', '?', '/');
+    $last_letters = array('B', 'G', 'N', 'K', 'F', 'P');
+    $all_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    
+    // Generate the key
+    $key = '';
+    
+    // First letter (B, J, N, A, F, or T)
+    $key .= $first_letters[array_rand($first_letters)];
+    
+    // 2nd and 3rd letters (any character)
+    $key .= $all_chars[array_rand(str_split($all_chars))];
+    $key .= $all_chars[array_rand(str_split($all_chars))];
+    
+    // 4th letter (X, G, K, D, E, or P)
+    $key .= $fourth_letters[array_rand($fourth_letters)];
+    
+    // 5th, 6th, 7th letters (any character)
+    $key .= $all_chars[array_rand(str_split($all_chars))];
+    $key .= $all_chars[array_rand(str_split($all_chars))];
+    $key .= $all_chars[array_rand(str_split($all_chars))];
+    
+    // 8th letter (special character)
+    $key .= $special_chars[array_rand($special_chars)];
+    
+    // 9th, 10th, 11th letters (any character)
+    $key .= $all_chars[array_rand(str_split($all_chars))];
+    $key .= $all_chars[array_rand(str_split($all_chars))];
+    $key .= $all_chars[array_rand(str_split($all_chars))];
+    
+    // 13th letter (B, G, N, K, F, or P)
+    $key .= $last_letters[array_rand($last_letters)];
+    
+    // Add domain
+    $key .= '.' . $domain;
+    
+    return $key;
+}
 ?>

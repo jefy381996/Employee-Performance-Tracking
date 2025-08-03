@@ -482,16 +482,19 @@ jQuery(document).ready(function($) {
                 nonce: $('#srm_license_nonce').val()
             },
             success: function(response) {
+                console.log('License activation response:', response);
                 if (response.success) {
-                    alert('License activated successfully!');
+                    alert('Success: ' + response.data);
                     location.reload();
                 } else {
                     alert('Error: ' + response.data);
                 }
             },
-            error: function() {
-                alert('An error occurred. Please try again.');
-            }
+            error: function(xhr, status, error) {
+                console.log('AJAX Error:', xhr, status, error);
+                alert('An error occurred: ' + error + '. Please check the console for details.');
+            },
+            dataType: 'json'
         });
     });
     
@@ -506,16 +509,19 @@ jQuery(document).ready(function($) {
                     nonce: $('#srm_license_nonce').val()
                 },
                 success: function(response) {
+                    console.log('License deactivation response:', response);
                     if (response.success) {
-                        alert('License deactivated successfully! You now have access to free features only.');
+                        alert('Success: ' + response.data);
                         location.reload();
                     } else {
                         alert('Error: ' + response.data);
                     }
                 },
-                error: function() {
-                    alert('An error occurred. Please try again.');
-                }
+                error: function(xhr, status, error) {
+                    console.log('AJAX Error:', xhr, status, error);
+                    alert('An error occurred: ' + error + '. Please check the console for details.');
+                },
+                dataType: 'json'
             });
         }
     });
@@ -530,15 +536,22 @@ jQuery(document).ready(function($) {
                 nonce: $('#srm_license_nonce').val()
             },
             success: function(response) {
+                console.log('License status response:', response);
                 if (response.success) {
-                    alert('License status: ' + response.data.status);
+                    var info = response.data;
+                    var message = 'License Status: ' + info.status.toUpperCase() + '\n';
+                    message += 'Domain: ' + info.domain + '\n';
+                    message += 'Has Premium: ' + (info.has_premium ? 'Yes' : 'No');
+                    alert(message);
                 } else {
                     alert('Error: ' + response.data);
                 }
             },
-            error: function() {
-                alert('An error occurred. Please try again.');
-            }
+            error: function(xhr, status, error) {
+                console.log('AJAX Error:', xhr, status, error);
+                alert('An error occurred: ' + error + '. Please check the console for details.');
+            },
+            dataType: 'json'
         });
     });
 });

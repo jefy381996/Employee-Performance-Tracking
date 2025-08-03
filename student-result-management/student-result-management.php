@@ -149,8 +149,7 @@ class StudentResultManagement {
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
-            KEY student_id (student_id),
-            FOREIGN KEY (student_id) REFERENCES $students_table(id) ON DELETE CASCADE
+            KEY student_id (student_id)
         ) $charset_collate;";
         
         // Plugin settings table

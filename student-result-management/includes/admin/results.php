@@ -16,8 +16,16 @@ $error = '';
 
 // Handle form submissions
 if ($_POST) {
+    // Debug: Log form submission
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log('SRM Plugin: Form submitted with POST data: ' . print_r($_POST, true));
+    }
+    
     if (!wp_verify_nonce($_POST['srm_nonce'], 'srm_result_action')) {
         $error = __('Security check failed.', 'student-result-management');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('SRM Plugin: Nonce verification failed');
+        }
     } else {
         $results_table = $wpdb->prefix . 'srm_results';
         
@@ -89,13 +97,18 @@ if ($_POST) {
             'certificate_pdf' => $certificate_pdf
         );
         
+        // Debug: Log the data being inserted
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('SRM Plugin: Attempting to insert result data: ' . print_r($result_data, true));
+        }
+        
         if ($action === 'add') {
             $result = $wpdb->insert($results_table, $result_data);
             if ($result) {
                 $message = __('Result added successfully!', 'student-result-management');
                 $action = 'list';
             } else {
-                $error = __('Error adding result.', 'student-result-management');
+                $error = __('Error adding result: ', 'student-result-management') . $wpdb->last_error;
             }
         } elseif ($action === 'edit' && $result_id) {
             $result = $wpdb->update($results_table, $result_data, array('id' => $result_id));
@@ -142,6 +155,11 @@ if ($action === 'add' && $student_id) {
 
 // Get all students for dropdown
 $students = $wpdb->get_results("SELECT id, roll_number, first_name, last_name FROM {$wpdb->prefix}srm_students ORDER BY first_name ASC");
+
+// Debug: Check if students are loaded
+if (empty($students)) {
+    $error = __('No students found. Please add students before adding results.', 'student-result-management');
+}
 ?>
 
 <div class="wrap srm-results">

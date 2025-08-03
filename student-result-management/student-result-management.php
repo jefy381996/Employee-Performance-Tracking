@@ -572,8 +572,8 @@ class StudentResultManagement {
      * Check license on admin pages
      */
     public function check_license_on_admin() {
-        $license_manager = new SRM_License_Manager();
-        $license_manager->force_license_check();
+        // License checking is now handled by the domain-bound license system
+        // No additional checks needed as the license manager handles validation automatically
     }
     
     /**

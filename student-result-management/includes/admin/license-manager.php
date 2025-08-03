@@ -209,6 +209,13 @@ class SRM_License_Manager {
     }
     
     /**
+     * Check if license key is valid (for backward compatibility)
+     */
+    public function is_valid_license_key($license_key) {
+        return $this->validate_license_format($license_key);
+    }
+    
+    /**
      * Get license information for display
      */
     public function get_license_info() {
@@ -286,6 +293,14 @@ class SRM_License_Manager {
         $current_count = $this->get_student_count();
         $limit = 20;
         return max(0, $limit - $current_count);
+    }
+    
+    /**
+     * Check if user has any license activated (for backward compatibility)
+     */
+    public function has_any_license() {
+        $license_key = $this->get_license_key();
+        return !empty($license_key);
     }
     
     /**

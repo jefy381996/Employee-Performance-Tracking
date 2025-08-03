@@ -13,6 +13,10 @@ $current_user_id = get_current_user_id();
 $plugin_owner = get_option('srm_plugin_owner');
 $is_owner = ($current_user_id == $plugin_owner);
 
+// Initialize license manager and premium status
+$license_manager = new SRM_License_Manager();
+$has_premium = $license_manager->has_premium_access();
+
 // Recent students
 $recent_students = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}srm_students ORDER BY created_at DESC LIMIT 5");
 
@@ -29,8 +33,7 @@ $recent_results = $wpdb->get_results("
 <div class="wrap srm-dashboard">
     <?php 
     // Display prominent contact notice for free users
-    $license_manager = new SRM_License_Manager();
-    if (!$license_manager->has_premium_access()) {
+    if (!$has_premium) {
         echo '<div class="notice notice-info" style="margin: 20px 0; padding: 20px; background: #f0f8ff; border-left: 4px solid #0073aa; font-size: 16px; text-align: center;">';
         echo '<h2 style="margin: 0 0 15px 0; color: #0073aa; font-size: 20px;">📞 Contact for Premium Version</h2>';
         echo '<p style="margin: 0 0 10px 0; font-size: 16px;"><strong>To buy the full Version, Contact Jaffar Abbas:</strong></p>';

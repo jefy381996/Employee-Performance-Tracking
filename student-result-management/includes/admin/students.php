@@ -180,17 +180,32 @@ if ($action === 'edit' && $student_id) {
         $can_add = $license_manager->can_add_student();
         ?>
         
-        <div class="srm-student-limit-info">
+        <div class="srm-student-limit-info" style="
+            background: #fff;
+            border: 1px solid #ccd0d4;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 1px rgba(0,0,0,.04);
+        ">
             <div class="srm-limit-card">
-                <h3><?php _e('Student Limit Status', 'student-result-management'); ?></h3>
-                <div class="srm-limit-details">
-                    <p><strong><?php _e('Current Students:', 'student-result-management'); ?></strong> <?php echo $student_count; ?></p>
+                <h3 style="margin: 0 0 15px 0; color: #23282d; font-size: 16px;"><?php _e('Student Limit Status', 'student-result-management'); ?></h3>
+                <div class="srm-limit-details" style="display: flex; gap: 30px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <p style="margin: 5px 0;"><strong><?php _e('Current Students:', 'student-result-management'); ?></strong> <span style="font-size: 18px; font-weight: bold; color: #0073aa;"><?php echo $student_count; ?></span></p>
+                    </div>
                     <?php if ($license_manager->has_premium_access()): ?>
-                        <p><strong><?php _e('Status:', 'student-result-management'); ?></strong> <span class="srm-status-premium"><?php _e('Premium - Unlimited', 'student-result-management'); ?></span></p>
+                        <div style="flex: 1; min-width: 200px;">
+                            <p style="margin: 5px 0;"><strong><?php _e('Status:', 'student-result-management'); ?></strong> <span style="color: #46b450; font-weight: bold;"><?php _e('Premium - Unlimited', 'student-result-management'); ?></span></p>
+                        </div>
                     <?php else: ?>
-                        <p><strong><?php _e('Remaining Slots:', 'student-result-management'); ?></strong> <?php echo $remaining_slots; ?> / 20</p>
+                        <div style="flex: 1; min-width: 200px;">
+                            <p style="margin: 5px 0;"><strong><?php _e('Remaining Slots:', 'student-result-management'); ?></strong> <span style="font-size: 18px; font-weight: bold; color: <?php echo $remaining_slots > 5 ? '#46b450' : '#d63638'; ?>;"><?php echo $remaining_slots; ?></span> / 20</p>
+                        </div>
                         <?php if (!$can_add): ?>
-                            <p class="srm-limit-warning"><?php _e('⚠️ You have reached the 20 student limit for free users. Upgrade to premium for unlimited students.', 'student-result-management'); ?></p>
+                            <div style="flex: 1; min-width: 300px;">
+                                <p style="margin: 5px 0; color: #d63638; font-weight: bold;">⚠️ <?php _e('You have reached the 20 student limit for free users. Upgrade to premium for unlimited students.', 'student-result-management'); ?></p>
+                            </div>
                         <?php endif; ?>
                     <?php endif; ?>
                 </div>
@@ -371,19 +386,75 @@ if ($action === 'edit' && $student_id) {
         ?>
         
         <!-- Search Form -->
-        <div class="srm-search-form">
-            <form method="get">
+        <div class="srm-search-form" style="
+            background: #fff;
+            border: 1px solid #ccd0d4;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 1px rgba(0,0,0,.04);
+        ">
+            <form method="get" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                 <input type="hidden" name="page" value="srm-students">
-                <p class="search-box">
-                    <label class="screen-reader-text" for="student-search-input"><?php _e('Search Students:', 'student-result-management'); ?></label>
-                    <input type="search" id="student-search-input" name="s" value="<?php echo esc_attr($search); ?>" placeholder="<?php _e('Search students...', 'student-result-management'); ?>">
-                    <input type="submit" id="search-submit" class="button" value="<?php _e('Search Students', 'student-result-management'); ?>">
-                </p>
+                
+                <div style="flex: 1; min-width: 300px;">
+                    <label for="student-search-input" style="display: block; margin-bottom: 5px; font-weight: 600; color: #23282d;">
+                        <?php _e('Search Students:', 'student-result-management'); ?>
+                    </label>
+                    <input type="search" 
+                           id="student-search-input" 
+                           name="s" 
+                           value="<?php echo esc_attr($search); ?>" 
+                           placeholder="<?php _e('Search by name, roll number, or email...', 'student-result-management'); ?>"
+                           style="
+                               width: 100%;
+                               padding: 8px 12px;
+                               border: 1px solid #ddd;
+                               border-radius: 4px;
+                               font-size: 14px;
+                               line-height: 1.4;
+                               box-sizing: border-box;
+                           "
+                    >
+                </div>
+                
+                <div style="display: flex; gap: 10px; align-items: flex-end;">
+                    <input type="submit" 
+                           id="search-submit" 
+                           class="button button-primary" 
+                           value="<?php _e('Search', 'student-result-management'); ?>"
+                           style="
+                               padding: 8px 16px;
+                               height: auto;
+                               line-height: 1.4;
+                           "
+                    >
+                    
+                    <?php if ($search): ?>
+                        <a href="<?php echo admin_url('admin.php?page=srm-students'); ?>" 
+                           class="button button-secondary"
+                           style="
+                               padding: 8px 16px;
+                               height: auto;
+                               line-height: 1.4;
+                               text-decoration: none;
+                           "
+                        >
+                            <?php _e('Clear Search', 'student-result-management'); ?>
+                        </a>
+                    <?php endif; ?>
+                </div>
             </form>
         </div>
         
         <!-- Students Table -->
-        <div class="srm-table-container">
+        <div class="srm-table-container" style="
+            background: #fff;
+            border: 1px solid #ccd0d4;
+            border-radius: 4px;
+            margin: 20px 0;
+            box-shadow: 0 1px 1px rgba(0,0,0,.04);
+        ">
             <?php if (!empty($students)): ?>
                 <table class="wp-list-table widefat fixed striped">
                     <thead>

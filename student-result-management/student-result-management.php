@@ -505,6 +505,15 @@ class StudentResultManagement {
             array($this, 'admin_premium_page')
         );
         
+        add_submenu_page(
+            'student-results',
+            __('Request License', 'student-result-management'),
+            __('Request License', 'student-result-management'),
+            'manage_options',
+            'srm-license-request',
+            array($this, 'admin_license_request_page')
+        );
+        
 
     }
     
@@ -607,6 +616,10 @@ class StudentResultManagement {
      */
     public function admin_premium_page() {
         include SRM_PLUGIN_PATH . 'includes/admin/enhanced-premium.php';
+    }
+    
+    public function admin_license_request_page() {
+        include SRM_PLUGIN_PATH . 'includes/admin/license-request.php';
     }
     
     public function admin_csv_import_export_page() {

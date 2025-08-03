@@ -138,54 +138,115 @@ $license_key = $license_manager->get_license_key();
     <?php endif; ?>
     
     <!-- License Activation Section (Always Visible) -->
-    <div class="srm-license-activation">
+    <div class="srm-license-activation" style="
+        background: #fff;
+        border: 1px solid #ccd0d4;
+        border-radius: 4px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    ">
         <h3><?php _e('License Management', 'student-result-management'); ?></h3>
         
-        <?php if (!$has_premium): ?>
+        <?php if ($has_premium): ?>
+            <div class="srm-license-info">
+                <p><strong><?php _e('Current License Status:', 'student-result-management'); ?></strong> 
+                    <span style="color: <?php echo $is_owner ? '#d63638' : '#46b450'; ?>; font-weight: bold;">
+                        <?php echo $is_owner ? __('Owner Access', 'student-result-management') : __('Premium Active', 'student-result-management'); ?>
+                    </span>
+                </p>
+                <?php if (!$is_owner): ?>
+                    <p><strong><?php _e('License Key:', 'student-result-management'); ?></strong> 
+                        <code><?php echo esc_html($license_manager->get_license_key()); ?></code>
+                    </p>
+                    <p><strong><?php _e('Bound Domain:', 'student-result-management'); ?></strong> 
+                        <?php echo esc_html($license_manager->get_license_domain()); ?>
+                    </p>
+                <?php endif; ?>
+                <p><strong><?php _e('Current Domain:', 'student-result-management'); ?></strong> 
+                    <?php echo esc_html($license_manager->get_current_domain()); ?>
+                </p>
+                <p><strong><?php _e('License File:', 'student-result-management'); ?></strong> 
+                    <?php echo $license_manager->has_license_file() ? __('Present', 'student-result-management') : __('Missing', 'student-result-management'); ?>
+                </p>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button type="button" class="button button-secondary" onclick="deactivateLicense()">
+                    <?php _e('Deactivate License', 'student-result-management'); ?>
+                </button>
+            </div>
+        <?php else: ?>
+            <div style="background: #f0f8ff; border-left: 4px solid #0073aa; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                <h4 style="margin: 0 0 10px 0; color: #0073aa;">🔒 Domain-Bound Licensing</h4>
+                <p style="margin: 5px 0; font-size: 14px;">
+                    <strong>New System:</strong> License keys are now domain-bound and stored in license files.
+                </p>
+                <ul style="margin: 5px 0; padding-left: 20px; font-size: 14px;">
+                    <li>Each license key is unique to a specific domain</li>
+                    <li>License keys cannot be shared between websites</li>
+                    <li>Format: <code>XYGh675*UGTFM.yourdomain.com</code></li>
+                    <li>License file must be present in plugin directory</li>
+                </ul>
+            </div>
+            
             <div class="notice notice-info">
                 <p><?php _e('To access premium features, you need to activate a valid license key.', 'student-result-management'); ?></p>
                 <p><strong><?php _e('Plugin Owner Key:', 'student-result-management'); ?></strong> <code>Bismillah^512</code></p>
-                <p><strong><?php _e('Premium User Keys:', 'student-result-management'); ?></strong> <?php _e('13-digit license keys provided by the plugin owner.', 'student-result-management'); ?></p>
-                <p><strong><?php _e('License Key Format:', 'student-result-management'); ?></strong> <?php _e('13 characters with specific character requirements at positions 1, 4, 8-10, and 13.', 'student-result-management'); ?></p>
+                <p><strong><?php _e('Premium User Keys:', 'student-result-management'); ?></strong> <?php _e('Domain-bound license keys provided by the plugin owner.', 'student-result-management'); ?></p>
+                <p><strong><?php _e('License Key Format:', 'student-result-management'); ?></strong> <?php _e('XYGh675*UGTFM.yourdomain.com', 'student-result-management'); ?></p>
             </div>
             
             <!-- License Uniqueness Notice -->
             <div class="notice notice-warning">
-                <h4 style="margin: 0 0 10px 0;">🔒 License Uniqueness</h4>
-                <p style="margin: 5px 0;"><strong>Important:</strong> Each license key can only be activated on one website.</p>
+                <h4 style="margin: 0 0 10px 0;">🔒 Domain-Bound Licensing</h4>
+                <p style="margin: 5px 0;"><strong>Important:</strong> Each license key is bound to a specific domain.</p>
                 <ul style="margin: 5px 0; padding-left: 20px;">
-                    <li>If a license key is already in use on another website, activation will fail</li>
+                    <li>License keys cannot be used on different domains</li>
                     <li>Each buyer must purchase their own unique license key</li>
                     <li>License sharing between multiple websites is not allowed</li>
                     <li>This ensures fair usage and prevents unauthorized sharing</li>
                 </ul>
             </div>
+            
+            <form method="post" id="srm-activate-form">
+                <?php wp_nonce_field('srm_license_nonce', 'srm_license_nonce'); ?>
+                
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="license_key"><?php _e('License Key', 'student-result-management'); ?></label>
+                        </th>
+                        <td>
+                            <input type="text" id="license_key" name="license_key" value="" class="regular-text" 
+                                   placeholder="<?php _e('Enter your domain-bound license key...', 'student-result-management'); ?>" required>
+                            <p class="description"><?php _e('Enter your domain-bound license key (e.g., XYGh675*UGTFM.yourdomain.com)', 'student-result-management'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+                
+                <p class="submit">
+                    <button type="button" class="button button-primary" id="srm-activate-license">
+                        <?php _e('Activate License', 'student-result-management'); ?>
+                    </button>
+                    <button type="button" class="button button-secondary" id="srm-check-license">
+                        <?php _e('Check License Status', 'student-result-management'); ?>
+                    </button>
+                </p>
+            </form>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                <h4 style="margin: 0 0 10px 0; color: #856404;">📋 Need a Premium License?</h4>
+                <p style="margin: 5px 0; font-size: 14px;">
+                    Don't have a license key yet? Request one by providing your domain information.
+                </p>
+                <p style="margin: 10px 0 0 0;">
+                    <a href="<?php echo admin_url('admin.php?page=srm-license-request'); ?>" class="button button-secondary">
+                        <?php _e('Request Premium License', 'student-result-management'); ?>
+                    </a>
+                </p>
+            </div>
         <?php endif; ?>
-        
-        <form method="post" id="srm-activate-form">
-            <?php wp_nonce_field('srm_license_nonce', 'srm_license_nonce'); ?>
-            
-            <table class="form-table">
-                <tr>
-                    <th scope="row">
-                        <label for="license_key"><?php _e('License Key', 'student-result-management'); ?></label>
-                    </th>
-                    <td>
-                        <input type="text" id="license_key" name="license_key" value="" class="regular-text" required>
-                        <p class="description"><?php _e('Enter your license key to activate premium features', 'student-result-management'); ?></p>
-                    </td>
-                </tr>
-            </table>
-            
-            <p class="submit">
-                <button type="button" class="button button-primary" id="srm-activate-license">
-                    <?php _e('Activate License', 'student-result-management'); ?>
-                </button>
-                <button type="button" class="button button-secondary" id="srm-check-license">
-                    <?php _e('Check License Status', 'student-result-management'); ?>
-                </button>
-            </p>
-        </form>
     </div>
     
     <!-- Feature Comparison -->

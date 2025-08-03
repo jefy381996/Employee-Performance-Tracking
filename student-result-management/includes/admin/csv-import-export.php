@@ -20,77 +20,6 @@ if ($_POST && isset($_POST['upload_csv']) && $has_premium) {
         $message = __('Please use the upload form below to import your CSV file.', 'student-result-management');
     }
 }
-
-// Handle export actions
-if (isset($_GET['export']) && wp_verify_nonce($_GET['_wpnonce'], 'srm_export') && $has_premium) {
-    global $wpdb;
-    
-    $export_type = sanitize_text_field($_GET['export']);
-    $filename = '';
-    $headers = array();
-    $data = array();
-    
-    if ($export_type === 'students') {
-        $filename = 'students_' . date('Y-m-d') . '.csv';
-        $headers = array('Roll Number', 'First Name', 'Last Name', 'Email', 'Phone', 'Class', 'Section', 'Date of Birth', 'Profile Image', 'Created At');
-        $students = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}srm_students ORDER BY created_at DESC");
-        
-        foreach ($students as $student) {
-            $data[] = array(
-                $student->roll_number,
-                $student->first_name,
-                $student->last_name,
-                $student->email,
-                $student->phone,
-                $student->class,
-                $student->section,
-                $student->date_of_birth,
-                $student->profile_image,
-                $student->created_at
-            );
-        }
-    } elseif ($export_type === 'results') {
-        $filename = 'results_' . date('Y-m-d') . '.csv';
-        $headers = array('Student Roll', 'Student Name', 'Exam Name', 'Exam Date', 'Total Marks', 'Obtained Marks', 'Percentage', 'Grade', 'Status', 'Certificate PDF', 'Created At');
-        $results = $wpdb->get_results("
-            SELECT r.*, s.roll_number, s.first_name, s.last_name 
-            FROM {$wpdb->prefix}srm_results r 
-            LEFT JOIN {$wpdb->prefix}srm_students s ON r.student_id = s.id 
-            ORDER BY r.created_at DESC
-        ");
-        
-        foreach ($results as $result) {
-            $data[] = array(
-                $result->roll_number,
-                $result->first_name . ' ' . $result->last_name,
-                $result->exam_name,
-                $result->exam_date,
-                $result->total_marks,
-                $result->obtained_marks,
-                $result->percentage,
-                $result->grade,
-                $result->status,
-                $result->certificate_pdf,
-                $result->created_at
-            );
-        }
-    }
-    
-    if (!empty($data)) {
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        
-        $output = fopen('php://output', 'w');
-        fputcsv($output, $headers);
-        
-        foreach ($data as $row) {
-            fputcsv($output, $row);
-        }
-        
-        fclose($output);
-        exit;
-    }
-}
 ?>
 
 <div class="wrap srm-csv-import-export">
@@ -189,17 +118,17 @@ if (isset($_GET['export']) && wp_verify_nonce($_GET['_wpnonce'], 'srm_export') &
                 <div class="srm-csv-export">
                     <h3><?php _e('Export Students', 'student-result-management'); ?></h3>
                     <p><?php _e('Download all student data as a CSV file.', 'student-result-management'); ?></p>
-                    <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=srm-csv-import-export&export=students'), 'srm_export', '_wpnonce'); ?>" class="button button-secondary">
+                    <button type="button" class="button button-secondary srm-export-students" data-type="students">
                         <?php _e('Export Students', 'student-result-management'); ?>
-                    </a>
+                    </button>
                 </div>
                 
                 <div class="srm-csv-export">
                     <h3><?php _e('Export Results', 'student-result-management'); ?></h3>
                     <p><?php _e('Download all result data as a CSV file.', 'student-result-management'); ?></p>
-                    <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=srm-csv-import-export&export=results'), 'srm_export', '_wpnonce'); ?>" class="button button-secondary">
+                    <button type="button" class="button button-secondary srm-export-results" data-type="results">
                         <?php _e('Export Results', 'student-result-management'); ?>
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -353,6 +282,49 @@ if (isset($_GET['export']) && wp_verify_nonce($_GET['_wpnonce'], 'srm_export') &
                         setTimeout(function() {
                             $('#srm-results-import-progress').hide();
                         }, 3000);
+                    }
+                });
+            });
+            
+            // CSV Export functionality
+            $('.srm-export-students, .srm-export-results').on('click', function() {
+                var $btn = $(this);
+                var exportType = $btn.data('type');
+                var originalText = $btn.text();
+                
+                // Disable button and show loading
+                $btn.prop('disabled', true).text('Preparing export...');
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'srm_export_csv',
+                        export_type: exportType,
+                        nonce: '<?php echo wp_create_nonce('srm_export_csv'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Create download link
+                            var link = document.createElement('a');
+                            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(response.data.csv_content);
+                            link.download = response.data.filename;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            
+                            $btn.text('Export completed!');
+                            setTimeout(function() {
+                                $btn.prop('disabled', false).text(originalText);
+                            }, 2000);
+                        } else {
+                            alert('Export failed: ' + response.data);
+                            $btn.prop('disabled', false).text(originalText);
+                        }
+                    },
+                    error: function() {
+                        alert('Export failed. Please try again.');
+                        $btn.prop('disabled', false).text(originalText);
                     }
                 });
             });

@@ -47,6 +47,7 @@ class StudentResultManagement {
         add_action('wp_ajax_srm_activate_license', array($this, 'ajax_activate_license'));
         add_action('wp_ajax_srm_deactivate_license', array($this, 'ajax_deactivate_license'));
         add_action('wp_ajax_srm_check_license_status', array($this, 'ajax_check_license_status'));
+        add_action('wp_ajax_srm_export_csv', array($this, 'ajax_export_csv'));
 
         
         // Include license manager and feature control system
@@ -1375,6 +1376,107 @@ class StudentResultManagement {
         $license_info = $license_manager->get_license_info();
         
         wp_send_json_success($license_info);
+    }
+    
+    /**
+     * AJAX handler for CSV export
+     */
+    public function ajax_export_csv() {
+        // Check nonce for security
+        if (!wp_verify_nonce($_POST['nonce'], 'srm_export_csv')) {
+            wp_send_json_error('Security check failed.');
+            return;
+        }
+        
+        // Check user capabilities
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions.');
+            return;
+        }
+        
+        // Check premium access
+        $license_manager = new SRM_License_Manager();
+        if (!$license_manager->has_premium_access()) {
+            wp_send_json_error('This is a premium feature. Please upgrade to access it.');
+            return;
+        }
+        
+        $export_type = sanitize_text_field($_POST['export_type']);
+        global $wpdb;
+        
+        $filename = '';
+        $headers = array();
+        $data = array();
+        
+        if ($export_type === 'students') {
+            $filename = 'students_' . date('Y-m-d') . '.csv';
+            $headers = array('Roll Number', 'First Name', 'Last Name', 'Email', 'Phone', 'Class', 'Section', 'Date of Birth', 'Profile Image', 'Created At');
+            $students = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}srm_students ORDER BY created_at DESC");
+            
+            foreach ($students as $student) {
+                $data[] = array(
+                    $student->roll_number,
+                    $student->first_name,
+                    $student->last_name,
+                    $student->email,
+                    $student->phone,
+                    $student->class,
+                    $student->section,
+                    $student->date_of_birth,
+                    $student->profile_image,
+                    $student->created_at
+                );
+            }
+        } elseif ($export_type === 'results') {
+            $filename = 'results_' . date('Y-m-d') . '.csv';
+            $headers = array('Student Roll', 'Student Name', 'Exam Name', 'Exam Date', 'Total Marks', 'Obtained Marks', 'Percentage', 'Grade', 'Status', 'Certificate PDF', 'Created At');
+            $results = $wpdb->get_results("
+                SELECT r.*, s.roll_number, s.first_name, s.last_name 
+                FROM {$wpdb->prefix}srm_results r 
+                LEFT JOIN {$wpdb->prefix}srm_students s ON r.student_id = s.id 
+                ORDER BY r.created_at DESC
+            ");
+            
+            foreach ($results as $result) {
+                $data[] = array(
+                    $result->roll_number,
+                    $result->first_name . ' ' . $result->last_name,
+                    $result->exam_name,
+                    $result->exam_date,
+                    $result->total_marks,
+                    $result->obtained_marks,
+                    $result->percentage,
+                    $result->grade,
+                    $result->status,
+                    $result->certificate_pdf,
+                    $result->created_at
+                );
+            }
+        } else {
+            wp_send_json_error('Invalid export type.');
+            return;
+        }
+        
+        if (empty($data)) {
+            wp_send_json_error('No data to export.');
+            return;
+        }
+        
+        // Generate CSV content
+        $csv_content = '';
+        
+        // Add headers
+        $csv_content .= '"' . implode('","', $headers) . '"' . "\n";
+        
+        // Add data rows
+        foreach ($data as $row) {
+            $csv_content .= '"' . implode('","', array_map('str_replace', array('"'), array('""'), $row)) . '"' . "\n";
+        }
+        
+        wp_send_json_success(array(
+            'filename' => $filename,
+            'csv_content' => $csv_content
+        ));
     }
 }
 

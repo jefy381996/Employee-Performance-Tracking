@@ -36,7 +36,8 @@ foreach ($tables_to_remove as $table) {
 // 2. Remove all plugin options from wp_options table
 $options_to_remove = array(
     'srm_license_key',
-    'srm_license_status', 
+    'srm_license_status',
+    'srm_license_activated_at',
     'srm_plugin_owner',
     'srm_school_name',
     'srm_school_logo',

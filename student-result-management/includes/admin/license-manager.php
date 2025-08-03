@@ -129,12 +129,16 @@ class SRM_License_Manager {
         // Check if it's the owner key
         if ($license_key === $this->owner_key) {
             $this->save_license_key($license_key);
+            // Record activation time
+            update_option('srm_license_activated_at', current_time('mysql'));
             return array('success' => true, 'message' => 'Owner license activated successfully!');
         }
         
         // Check if it's a valid domain-bound license
         if ($this->is_valid_domain_license($license_key)) {
             $this->save_license_key($license_key);
+            // Record activation time
+            update_option('srm_license_activated_at', current_time('mysql'));
             return array('success' => true, 'message' => 'Premium license activated successfully for this domain!');
         }
         
@@ -214,6 +218,8 @@ class SRM_License_Manager {
         if (file_exists($this->license_file_path)) {
             unlink($this->license_file_path);
         }
+        // Clear activation time
+        delete_option('srm_license_activated_at');
         return array('success' => true, 'message' => 'License deactivated successfully!');
     }
     
@@ -418,5 +424,37 @@ class SRM_License_Manager {
         
         $current_count = $this->get_student_count();
         return $current_count < 20;
+    }
+    
+    /**
+     * Get current license usage information
+     */
+    public function get_current_license_usage() {
+        $license_key = $this->get_license_key();
+        
+        if (empty($license_key) || $license_key === $this->owner_key) {
+            return array();
+        }
+        
+        // Get current user info
+        $current_user = wp_get_current_user();
+        
+        // Get activation time (from option or estimate)
+        $activated_at = get_option('srm_license_activated_at');
+        if (empty($activated_at)) {
+            // If not set, use a default or current time
+            $activated_at = current_time('mysql');
+            update_option('srm_license_activated_at', $activated_at);
+        }
+        
+        return array(
+            'site_url' => get_site_url(),
+            'domain' => $this->get_current_domain(),
+            'activated_at' => $activated_at,
+            'user_email' => $current_user->user_email,
+            'user_name' => $current_user->display_name,
+            'license_key' => $license_key,
+            'license_domain' => $this->get_license_domain()
+        );
     }
 }

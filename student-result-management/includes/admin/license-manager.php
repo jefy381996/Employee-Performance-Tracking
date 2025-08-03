@@ -46,19 +46,15 @@ class SRM_License_Manager {
             return ($current_user_id == $plugin_owner);
         }
         
-        return ($current_user_id == $plugin_owner);
+        // Only return true if user is owner AND has owner key activated
+        return false;
     }
     
     /**
      * Check if user has premium access
      */
     public function has_premium_access() {
-        // Plugin owner always has premium access
-        if ($this->is_plugin_owner()) {
-            return true;
-        }
-        
-        // Check if user has a valid license key
+        // Check if user has a valid license key (including owner key)
         $license_key = $this->get_license_key();
         return !empty($license_key) && $this->is_valid_license_key($license_key);
     }

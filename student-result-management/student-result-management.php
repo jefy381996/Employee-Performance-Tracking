@@ -71,6 +71,15 @@ class StudentResultManagement {
         $this->create_tables();
         $this->set_default_options();
         
+        // Clear any existing license data to ensure fresh start
+        delete_option('srm_license_key');
+        delete_option('srm_license_status');
+        delete_option('srm_plugin_owner');
+        
+        // Set default license status to free
+        update_option('srm_license_key', '');
+        update_option('srm_license_status', 'free');
+        
         // Verify tables were created
         $this->verify_tables();
         
@@ -375,8 +384,8 @@ class StudentResultManagement {
             ));
         }
         
-        // Make current admin the owner
-        update_option('srm_plugin_owner', get_current_user_id());
+        // Don't set plugin owner automatically - user must activate license first
+        // update_option('srm_plugin_owner', get_current_user_id());
     }
     
     /**

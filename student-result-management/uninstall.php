@@ -14,6 +14,16 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 // Include WordPress database functions
 global $wpdb;
 
+echo "<div style='background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>";
+echo "<div style='display: flex; align-items: center; gap: 15px;'>";
+echo "<div style='background: #f39c12; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 20px;'>⚠️</div>";
+echo "<div>";
+echo "<h4 style='margin: 0 0 8px 0; color: #856404; font-size: 16px;'>⚠️ WARNING: Data Loss</h4>";
+echo "<p style='margin: 0; color: #856404; font-size: 14px;'>This will permanently delete ALL your students, results, and settings data. Make sure you have backed up your data before proceeding!</p>";
+echo "</div>";
+echo "</div>";
+echo "</div>";
+
 echo "<h2>🧹 Uninstalling Student Result Management Plugin</h2>";
 echo "<p>Cleaning up all plugin data...</p>";
 

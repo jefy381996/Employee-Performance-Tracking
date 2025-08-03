@@ -242,6 +242,26 @@ if ($action === 'edit' && $student_id) {
     <?php if ($action === 'add' || $action === 'edit'): ?>
         <!-- Add/Edit Form -->
         <div class="srm-form-container">
+            <?php if ($action === 'add'): ?>
+                <?php 
+                $license_manager = new SRM_License_Manager();
+                $can_add = $license_manager->can_add_student();
+                $student_count = $license_manager->get_student_count();
+                $remaining_slots = $license_manager->get_remaining_student_slots();
+                ?>
+                <?php if (!$can_add): ?>
+                    <div class="notice notice-error" style="margin: 20px 0;">
+                        <h3><?php _e('Student Limit Reached', 'student-result-management'); ?></h3>
+                        <p><?php printf(__('You have reached the limit of 20 students for free users. Current count: %d. Upgrade to premium for unlimited students.', 'student-result-management'), $student_count); ?></p>
+                        <p><a href="<?php echo admin_url('admin.php?page=srm-enhanced-premium'); ?>" class="button button-primary"><?php _e('Upgrade to Premium', 'student-result-management'); ?></a></p>
+                    </div>
+                <?php else: ?>
+                    <div class="notice notice-info" style="margin: 20px 0;">
+                        <p><?php printf(__('You can add %d more students. Upgrade to premium for unlimited students.', 'student-result-management'), $remaining_slots); ?></p>
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
+            
             <form method="post" class="srm-student-form" enctype="multipart/form-data">
                 <?php wp_nonce_field('srm_student_action', 'srm_nonce'); ?>
                 

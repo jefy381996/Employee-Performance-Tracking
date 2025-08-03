@@ -81,6 +81,40 @@ foreach ($defaults as $key => $default_value) {
         echo '</div>';
     }
     ?>
+    
+    <!-- Backup Notice -->
+    <div class="srm-backup-notice" style="
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    ">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="
+                background: #f39c12;
+                color: white;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+            ">
+                ⚠️
+            </div>
+            <div>
+                <h4 style="margin: 0 0 8px 0; color: #856404; font-size: 16px;"><?php _e('Important: Backup Your Data', 'student-result-management'); ?></h4>
+                <p style="margin: 0; color: #856404; font-size: 14px;">
+                    <?php _e('Please backup and export your data before uninstalling the plugin. You can use the CSV Import/Export feature to download your students and results data.', 'student-result-management'); ?>
+                    <a href="<?php echo admin_url('admin.php?page=srm-csv-import-export'); ?>" style="color: #0073aa; text-decoration: none; font-weight: bold;"><?php _e('Go to Export Page', 'student-result-management'); ?></a>
+                </p>
+            </div>
+        </div>
+    </div>
+    
     <h1><?php _e('Settings', 'student-result-management'); ?></h1>
     
     <?php if ($message): ?>

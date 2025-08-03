@@ -58,6 +58,19 @@ $recent_results = $wpdb->get_results("
                 <div class="srm-stat-content">
                     <h3><?php echo number_format($students_count); ?></h3>
                     <p><?php _e('Total Students', 'student-result-management'); ?></p>
+                    <?php if (!$has_premium): ?>
+                        <?php 
+                        $remaining_slots = $license_manager->get_remaining_student_slots();
+                        $can_add = $license_manager->can_add_student();
+                        ?>
+                        <div style="margin-top: 8px; font-size: 12px; color: <?php echo $remaining_slots > 5 ? '#46b450' : '#d63638'; ?>;">
+                            <?php if ($can_add): ?>
+                                <?php printf(__('%d slots remaining', 'student-result-management'), $remaining_slots); ?>
+                            <?php else: ?>
+                                <strong><?php _e('Limit reached', 'student-result-management'); ?></strong>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
             
@@ -230,6 +243,39 @@ $recent_results = $wpdb->get_results("
                         }
                         ?>
                     </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Backup Notice -->
+        <div class="srm-backup-notice" style="
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        ">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="
+                    background: #f39c12;
+                    color: white;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 20px;
+                ">
+                    ⚠️
+                </div>
+                <div>
+                    <h4 style="margin: 0 0 8px 0; color: #856404; font-size: 16px;"><?php _e('Important: Backup Your Data', 'student-result-management'); ?></h4>
+                    <p style="margin: 0; color: #856404; font-size: 14px;">
+                        <?php _e('Please backup and export your data before uninstalling the plugin. You can use the CSV Import/Export feature to download your students and results data.', 'student-result-management'); ?>
+                        <a href="<?php echo admin_url('admin.php?page=srm-csv-import-export'); ?>" style="color: #0073aa; text-decoration: none; font-weight: bold;"><?php _e('Go to Export Page', 'student-result-management'); ?></a>
+                    </p>
                 </div>
             </div>
         </div>

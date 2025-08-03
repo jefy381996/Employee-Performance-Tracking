@@ -90,7 +90,15 @@ class StudentResultManagement {
      * Plugin deactivation
      */
     public function deactivate() {
+        // Clear any transients
+        delete_transient('srm_license_check');
+        delete_transient('srm_analytics_cache');
+        delete_transient('srm_notifications_cache');
+        
         flush_rewrite_rules();
+        
+        // Note: Plugin data is retained on deactivation
+        // To completely remove all data, uninstall the plugin
     }
     
     /**

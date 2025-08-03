@@ -1,0 +1,143 @@
+PRIVACY POLICY FOR STUDENT RESULT MANAGEMENT PLUGIN
+
+Last Updated: [Current Date]
+
+This Privacy Policy describes how the Student Result Management WordPress Plugin ("we," "our," or "us") collects, uses, and protects information when you use our plugin.
+
+1. INFORMATION WE COLLECT
+
+1.1 Student Information
+- Student names, roll numbers, and contact details
+- Academic records, exam results, and grades
+- Profile images (if uploaded by premium users)
+- Class and section information
+
+1.2 Administrative Information
+- School/Institution name and contact details
+- Administrator email addresses
+- Plugin usage statistics and settings
+
+1.3 Technical Information
+- WordPress site URL and domain information
+- Plugin activation and usage data
+- License key information (for premium features)
+
+2. HOW WE USE YOUR INFORMATION
+
+2.1 Student Data Management
+- Store and manage student records
+- Process and display exam results
+- Generate result cards and reports
+- Provide result lookup functionality
+
+2.2 Administrative Functions
+- Manage plugin settings and configurations
+- Handle license activation and validation
+- Provide customer support and technical assistance
+- Send important notifications and updates
+
+2.3 Data Processing
+- Calculate grades and percentages automatically
+- Generate CSV exports and reports
+- Create PDF result cards (premium feature)
+- Manage user permissions and access levels
+
+3. DATA STORAGE AND SECURITY
+
+3.1 Local Storage
+- All data is stored locally on your WordPress site
+- We do not transmit data to external servers
+- Data is stored in your WordPress database
+- Backup files are stored in your WordPress uploads directory
+
+3.2 Security Measures
+- Data is protected by WordPress security features
+- Access is restricted to authorized administrators
+- Database queries are sanitized and secured
+- File uploads are validated and secured
+
+4. DATA RETENTION
+
+4.1 Student Records
+- Student data is retained as long as the plugin is active
+- Data can be exported via CSV at any time
+- Data is removed when the plugin is uninstalled
+
+4.2 Administrative Data
+- Settings and configurations are retained with the plugin
+- License information is stored locally
+- Usage statistics are maintained for support purposes
+
+5. YOUR RIGHTS AND CHOICES
+
+5.1 Access and Control
+- You have full control over all student data
+- You can export all data via CSV functionality
+- You can delete individual records or all data
+- You can modify or update student information
+
+5.2 Data Export
+- Export student data as CSV files
+- Export result data as CSV files
+- Download backup files before uninstallation
+- Transfer data to other systems
+
+6. THIRD-PARTY SERVICES
+
+6.1 No External Services
+- We do not use third-party analytics
+- We do not share data with external services
+- All processing occurs locally on your site
+
+6.2 Optional Integrations
+- Email notifications (if configured)
+- PDF generation (premium feature)
+- CSV import/export functionality
+
+7. CHILDREN'S PRIVACY
+
+7.1 Student Data Protection
+- Student data may include minors' information
+- Parents/guardians should be informed of data collection
+- Educational institutions should comply with local privacy laws
+- Student consent should be obtained where required
+
+8. CHANGES TO THIS POLICY
+
+8.1 Policy Updates
+- We may update this privacy policy
+- Changes will be communicated through plugin updates
+- Continued use constitutes acceptance of changes
+
+9. CONTACT INFORMATION
+
+9.1 Support and Questions
+- For privacy-related questions, contact: jaffar381996152@gmail.com
+- For technical support, use the plugin's support features
+- For license inquiries, contact the plugin developer
+
+10. COMPLIANCE
+
+10.1 Legal Requirements
+- This plugin should be used in compliance with local privacy laws
+- Educational institutions should follow applicable regulations
+- GDPR compliance is the responsibility of the data controller
+- COPPA compliance is required for children's data
+
+11. DATA BREACH PROCEDURES
+
+11.1 Incident Response
+- In case of data breach, contact us immediately
+- We will assist in identifying and containing the breach
+- Follow your organization's incident response procedures
+- Notify affected individuals as required by law
+
+12. BACKUP AND RECOVERY
+
+12.1 Data Protection
+- Regular backups are recommended
+- Export data before major updates
+- Test backup and recovery procedures
+- Keep backup files secure
+
+This privacy policy is designed to protect the privacy of students and users while providing transparency about data handling practices. For questions or concerns about this policy, please contact us at jaffar381996152@gmail.com.

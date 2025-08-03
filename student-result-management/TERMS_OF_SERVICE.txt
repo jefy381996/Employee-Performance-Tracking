@@ -1,0 +1,204 @@
+TERMS OF SERVICE FOR STUDENT RESULT MANAGEMENT PLUGIN
+
+Last Updated: [Current Date]
+
+These Terms of Service ("Terms") govern your use of the Student Result Management WordPress Plugin ("Plugin," "Service," or "we," "our," "us").
+
+1. ACCEPTANCE OF TERMS
+
+1.1 Agreement
+By installing, activating, or using the Student Result Management Plugin, you agree to be bound by these Terms of Service.
+
+1.2 Eligibility
+You must be at least 18 years old or have parental consent to use this plugin. Educational institutions must have proper authorization to use this service.
+
+2. DESCRIPTION OF SERVICE
+
+2.1 Plugin Functionality
+The Student Result Management Plugin provides:
+- Student record management
+- Exam result processing and display
+- Result lookup functionality
+- Data export capabilities
+- Administrative tools and settings
+
+2.2 Free and Premium Features
+- Free features are available to all users
+- Premium features require license activation
+- Feature availability may change with updates
+
+3. LICENSE AND USAGE
+
+3.1 Plugin License
+- The plugin is provided under GPL v2 or later license
+- You may modify and redistribute the plugin
+- Attribution to the original developer is required
+
+3.2 Usage Rights
+- Use the plugin for educational purposes
+- Manage student data responsibly
+- Comply with applicable privacy laws
+- Maintain data security and confidentiality
+
+3.3 Restrictions
+- Do not use for illegal purposes
+- Do not attempt to reverse engineer the plugin
+- Do not remove copyright notices
+- Do not use in violation of WordPress guidelines
+
+4. USER RESPONSIBILITIES
+
+4.1 Data Management
+- You are responsible for all student data entered
+- Ensure data accuracy and completeness
+- Maintain appropriate security measures
+- Comply with privacy regulations
+
+4.2 Administrative Duties
+- Manage user access and permissions
+- Regular backup of important data
+- Monitor plugin functionality
+- Report issues promptly
+
+4.3 Legal Compliance
+- Follow local educational regulations
+- Comply with data protection laws
+- Obtain necessary consents
+- Maintain student privacy rights
+
+5. PREMIUM FEATURES AND LICENSING
+
+5.1 License Activation
+- Premium features require valid license
+- Licenses are domain-specific
+- One license per domain/installation
+- License sharing is not permitted
+
+5.2 License Terms
+- Licenses are non-transferable
+- Licenses are valid for the specified domain
+- License keys are confidential
+- Unauthorized sharing is prohibited
+
+6. PRIVACY AND DATA PROTECTION
+
+6.1 Data Collection
+- We collect only necessary information
+- Data is stored locally on your server
+- No data is transmitted to external servers
+- You control all student data
+
+6.2 Data Security
+- Implement appropriate security measures
+- Protect against unauthorized access
+- Regular security updates
+- Secure data transmission
+
+7. SUPPORT AND MAINTENANCE
+
+7.1 Technical Support
+- Support is provided for active installations
+- Contact via email: jaffar381996152@gmail.com
+- Response time may vary
+- Support scope is limited to plugin functionality
+
+7.2 Updates and Maintenance
+- Plugin updates are provided as available
+- Updates may include security patches
+- Backup data before major updates
+- Test updates in staging environment
+
+8. DISCLAIMER OF WARRANTIES
+
+8.1 Service Availability
+- The plugin is provided "as is"
+- No warranty of merchantability
+- No warranty of fitness for purpose
+- No warranty of non-infringement
+
+8.2 Limitation of Liability
+- We are not liable for data loss
+- We are not liable for security breaches
+- We are not liable for indirect damages
+- Liability is limited to the amount paid
+
+9. INTELLECTUAL PROPERTY
+
+9.1 Ownership
+- Plugin code is owned by the developer
+- Student data belongs to the institution
+- Custom modifications belong to the user
+- Third-party libraries have their own licenses
+
+9.2 Usage Rights
+- You may modify the plugin code
+- You may redistribute under GPL
+- Attribution is required
+- Commercial use is permitted
+
+10. TERMINATION
+
+10.1 Termination by User
+- You may uninstall the plugin at any time
+- Export data before uninstallation
+- No refunds for premium licenses
+- Data deletion is permanent
+
+10.2 Termination by Developer
+- We may discontinue the plugin
+- We may terminate support services
+- We will provide reasonable notice
+- We will assist with data migration
+
+11. GOVERNING LAW
+
+11.1 Jurisdiction
+- These terms are governed by applicable law
+- Disputes will be resolved locally
+- International users must comply with local laws
+- Educational institutions must follow institutional policies
+
+12. CHANGES TO TERMS
+
+12.1 Updates
+- We may update these terms
+- Changes will be communicated
+- Continued use constitutes acceptance
+- Major changes require explicit consent
+
+13. CONTACT INFORMATION
+
+13.1 Support Contact
+- Email: jaffar381996152@gmail.com
+- WhatsApp: +923083430923
+- Response time: Within 24-48 hours
+- Support hours: Monday to Friday
+
+14. MISCELLANEOUS
+
+14.1 Severability
+- If any provision is invalid, others remain
+- Invalid provisions will be modified
+- Intent of the agreement is preserved
+
+14.2 Entire Agreement
+- These terms constitute the entire agreement
+- No oral modifications are binding
+- Written modifications must be signed
+- Previous agreements are superseded
+
+15. EDUCATIONAL USE
+
+15.1 Institutional Requirements
+- Educational institutions must follow policies
+- Student privacy must be protected
+- Data retention policies must be followed
+- Regular audits may be required
+
+15.2 Compliance
+- Follow FERPA guidelines (US)
+- Follow GDPR guidelines (EU)
+- Follow local educational regulations
+- Maintain student confidentiality
+
+By using the Student Result Management Plugin, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.

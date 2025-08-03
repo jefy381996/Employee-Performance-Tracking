@@ -1,6 +1,9 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
+// Include license manager
+require_once SRM_PLUGIN_PATH . 'includes/admin/license-manager.php';
+
 global $wpdb;
 
 $message = '';

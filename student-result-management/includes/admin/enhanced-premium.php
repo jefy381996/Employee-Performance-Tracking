@@ -177,24 +177,9 @@ $license_key = $license_manager->get_license_key();
                 </button>
             </div>
         <?php else: ?>
-            <div style="background: #f0f8ff; border-left: 4px solid #0073aa; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
-                <h4 style="margin: 0 0 10px 0; color: #0073aa;">🔒 Domain-Bound Licensing</h4>
-                <p style="margin: 5px 0; font-size: 14px;">
-                    <strong>New System:</strong> License keys are now domain-bound and stored in license files.
-                </p>
-                <ul style="margin: 5px 0; padding-left: 20px; font-size: 14px;">
-                    <li>Each license key is unique to a specific domain</li>
-                    <li>License keys cannot be shared between websites</li>
-                    <li>Format: <code>XYGh675*UGTFM.yourdomain.com</code></li>
-                    <li>License file must be present in plugin directory</li>
-                </ul>
-            </div>
-            
             <div class="notice notice-info">
                 <p><?php _e('To access premium features, you need to activate a valid license key.', 'student-result-management'); ?></p>
-                <p><strong><?php _e('Plugin Owner Key:', 'student-result-management'); ?></strong> <code>Bismillah^512</code></p>
-                <p><strong><?php _e('Premium User Keys:', 'student-result-management'); ?></strong> <?php _e('Domain-bound license keys provided by the plugin owner.', 'student-result-management'); ?></p>
-                <p><strong><?php _e('License Key Format:', 'student-result-management'); ?></strong> <?php _e('XYGh675*UGTFM.yourdomain.com', 'student-result-management'); ?></p>
+                <p><?php _e('Contact the plugin developer to obtain a license key for your domain.', 'student-result-management'); ?></p>
             </div>
             
             <!-- License Uniqueness Notice -->
@@ -219,8 +204,8 @@ $license_key = $license_manager->get_license_key();
                         </th>
                         <td>
                             <input type="text" id="license_key" name="license_key" value="" class="regular-text" 
-                                   placeholder="<?php _e('Enter your domain-bound license key...', 'student-result-management'); ?>" required>
-                            <p class="description"><?php _e('Enter your domain-bound license key (e.g., XYGh675*UGTFM.yourdomain.com)', 'student-result-management'); ?></p>
+                                   placeholder="<?php _e('Enter your license key...', 'student-result-management'); ?>" required>
+                            <p class="description"><?php _e('Enter the license key provided for your domain.', 'student-result-management'); ?></p>
                         </td>
                     </tr>
                 </table>

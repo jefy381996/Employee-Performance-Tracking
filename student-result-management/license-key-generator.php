@@ -6,6 +6,11 @@
 
 if (!defined('ABSPATH')) exit;
 
+// Security check - only allow access in development environment or for authorized users
+if (!current_user_can('manage_options') || !WP_DEBUG) {
+    wp_die('Access denied. This tool is for authorized administrators only.');
+}
+
 echo "<h2>🔑 License Key Generator</h2>";
 
 if (isset($_POST['generate_license'])) {
@@ -19,7 +24,7 @@ if (isset($_POST['generate_license'])) {
     echo "<h3>✅ License Key Generated</h3>";
     echo "<p><strong>Customer:</strong> " . esc_html($customer_name) . "</p>";
     echo "<p><strong>Domain:</strong> " . esc_html($domain_name) . "</p>";
-    echo "<p><strong>License Key:</strong> <code style='background: #f0f0f0; padding: 5px; border-radius: 3px;'>" . esc_html($license_key) . "</code></p>";
+    echo "<p><strong>License Generated:</strong> <span style='color: green; font-weight: bold;'>✓ Success</span></p>";
     echo "</div>";
     
     // Generate license file content
@@ -35,8 +40,8 @@ if (isset($_POST['generate_license'])) {
     echo "<h4>📋 Instructions for Customer</h4>";
     echo "<ol>";
     echo "<li>Create a text file named <code>license.key</code></li>";
-    echo "<li>Put this content in the file: <code>" . esc_html($license_key) . "</code></li>";
-    echo "<li>Upload the file to: <code>/wp-content/plugins/student-result-management/</code></li>";
+    echo "<li>Put the generated license key content in the file</li>";
+    echo "<li>Upload the file to the plugin directory</li>";
     echo "<li>Go to WordPress Admin → Student Results → Premium Features</li>";
     echo "<li>Activate the license</li>";
     echo "<li>Premium features will be unlocked</li>";
@@ -49,12 +54,12 @@ if (isset($_POST['generate_license'])) {
     echo "<p><strong>Message:</strong></p>";
     echo "<p>Dear " . esc_html($customer_name) . ",</p>";
     echo "<p>Thank you for your license request. Here is your premium license key:</p>";
-    echo "<p><strong>License Key:</strong> <code>" . esc_html($license_key) . "</code></p>";
+    echo "<p><strong>Your license key has been generated and saved to the license file.</strong></p>";
     echo "<p><strong>Installation Instructions:</strong></p>";
     echo "<ol>";
     echo "<li>Create a text file named <code>license.key</code></li>";
     echo "<li>Put the license key in the file</li>";
-    echo "<li>Upload the file to your plugin directory: <code>/wp-content/plugins/student-result-management/</code></li>";
+    echo "<li>Upload the file to your plugin directory</li>";
     echo "<li>Go to WordPress Admin → Student Results → Premium Features</li>";
     echo "<li>Activate the license</li>";
     echo "<li>Enjoy your premium features!</li>";

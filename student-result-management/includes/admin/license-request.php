@@ -146,15 +146,7 @@ if ($_POST && isset($_POST['submit_license_request'])) {
                 We will generate a unique domain-bound license key for your website.
             </p>
             
-            <div style="background: #f0f8ff; border-left: 4px solid #0073aa; padding: 15px; margin: 20px 0; border-radius: 4px;">
-                <h4 style="margin: 0 0 10px 0; color: #0073aa;">🔒 Domain-Bound Licensing System</h4>
-                <ul style="margin: 0; padding-left: 20px;">
-                    <li>Each license key is bound to a specific domain</li>
-                    <li>License keys cannot be shared between different websites</li>
-                    <li>Format: <code>XYGh675*UGTFM.yourdomain.com</code></li>
-                    <li>Premium features are unlocked only on the licensed domain</li>
-                </ul>
-            </div>
+
         </div>
         
         <div class="srm-current-domain-info" style="

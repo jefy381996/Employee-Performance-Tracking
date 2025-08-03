@@ -179,24 +179,77 @@ class SRM_License_Manager {
         }
         
         // Check if it's a valid license key
-        if ($this->is_valid_license_key($license_key)) {
-            update_option('srm_license_key', $license_key);
-            update_option('srm_license_status', 'premium');
-            return array('success' => true, 'message' => 'Premium license activated successfully!');
+        if (!$this->is_valid_license_key($license_key)) {
+            return array('success' => false, 'message' => 'Invalid license key format. Please check and try again.');
         }
         
-        return array('success' => false, 'message' => 'Invalid license key. Please check and try again.');
+        // Check if this license key is already in use on another installation
+        $current_site_id = $this->get_site_identifier();
+        $license_usage = get_option('srm_license_usage_' . $license_key, array());
+        
+        if (!empty($license_usage) && $license_usage['site_id'] !== $current_site_id) {
+            return array(
+                'success' => false, 
+                'message' => 'This license key is already activated on another website. Each license key can only be used on one installation. Please purchase a new license key.'
+            );
+        }
+        
+        // Check if this site already has a different license activated
+        $current_license = get_option('srm_license_key');
+        if (!empty($current_license) && $current_license !== $license_key) {
+            // Remove the old license usage
+            $old_license_usage = get_option('srm_license_usage_' . $current_license, array());
+            if (!empty($old_license_usage) && $old_license_usage['site_id'] === $current_site_id) {
+                delete_option('srm_license_usage_' . $current_license);
+            }
+        }
+        
+        // Activate the license
+        update_option('srm_license_key', $license_key);
+        update_option('srm_license_status', 'premium');
+        
+        // Record this license usage
+        $usage_data = array(
+            'site_id' => $current_site_id,
+            'site_url' => get_site_url(),
+            'activated_at' => current_time('mysql'),
+            'user_id' => get_current_user_id(),
+            'user_email' => wp_get_current_user()->user_email
+        );
+        update_option('srm_license_usage_' . $license_key, $usage_data);
+        
+        return array('success' => true, 'message' => 'Premium license activated successfully! This license is now bound to this installation.');
     }
     
     /**
      * Deactivate license
      */
     public function deactivate_license() {
+        $current_license = get_option('srm_license_key');
+        
+        if (!empty($current_license)) {
+            // Remove the license usage record
+            delete_option('srm_license_usage_' . $current_license);
+        }
+        
         delete_option('srm_license_key');
         delete_option('srm_license_status');
         
         // Don't remove plugin owner status
-        return array('success' => true, 'message' => 'License deactivated successfully!');
+        return array('success' => true, 'message' => 'License deactivated successfully! This license key is now available for use on another installation.');
+    }
+    
+    /**
+     * Get unique site identifier
+     */
+    private function get_site_identifier() {
+        $site_url = get_site_url();
+        $site_name = get_bloginfo('name');
+        $site_description = get_bloginfo('description');
+        
+        // Create a unique identifier based on site characteristics
+        $identifier_data = $site_url . '|' . $site_name . '|' . $site_description;
+        return md5($identifier_data);
     }
     
     /**
@@ -205,6 +258,32 @@ class SRM_License_Manager {
     public function check_license_status() {
         $status = $this->get_license_status();
         return array('success' => true, 'status' => $status);
+    }
+    
+    /**
+     * Check if a license key is already in use
+     */
+    public function is_license_in_use($license_key) {
+        $usage_data = get_option('srm_license_usage_' . $license_key, array());
+        return !empty($usage_data);
+    }
+    
+    /**
+     * Get license usage information
+     */
+    public function get_license_usage_info($license_key) {
+        return get_option('srm_license_usage_' . $license_key, array());
+    }
+    
+    /**
+     * Get current license usage information
+     */
+    public function get_current_license_usage() {
+        $current_license = get_option('srm_license_key');
+        if (empty($current_license)) {
+            return array();
+        }
+        return $this->get_license_usage_info($current_license);
     }
     
     /**

@@ -50,6 +50,22 @@ $license_key = $license_manager->get_license_key();
                     <p><strong><?php _e('License Key:', 'student-result-management'); ?></strong> 
                         <code><?php echo esc_html($license_key); ?></code>
                     </p>
+                    
+                    <?php 
+                    // Show license usage information for premium users
+                    if ($has_premium && !$is_owner) {
+                        $usage_info = $license_manager->get_current_license_usage();
+                        if (!empty($usage_info)) {
+                            echo '<div class="srm-license-usage-info" style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-left: 4px solid #0073aa; border-radius: 4px;">';
+                            echo '<h4 style="margin: 0 0 10px 0; color: #0073aa;">📋 License Usage Information</h4>';
+                            echo '<p style="margin: 5px 0;"><strong>Site URL:</strong> ' . esc_html($usage_info['site_url']) . '</p>';
+                            echo '<p style="margin: 5px 0;"><strong>Activated:</strong> ' . esc_html($usage_info['activated_at']) . '</p>';
+                            echo '<p style="margin: 5px 0;"><strong>User:</strong> ' . esc_html($usage_info['user_email']) . '</p>';
+                            echo '<p style="margin: 5px 0; font-size: 12px; color: #666;"><em>This license is bound to this installation and cannot be used elsewhere.</em></p>';
+                            echo '</div>';
+                        }
+                    }
+                    ?>
                 <?php endif; ?>
             </div>
         </div>
@@ -75,7 +91,22 @@ $license_key = $license_manager->get_license_key();
                         <li><?php _e('Full access to all premium features', 'student-result-management'); ?></li>
                         <li><?php _e('Access to all admin functions', 'student-result-management'); ?></li>
                         <li><?php _e('Can deactivate and reactivate licenses', 'student-result-management'); ?></li>
+                        <li><?php _e('Can manage license usage and uniqueness', 'student-result-management'); ?></li>
                     </ul>
+                </div>
+                
+                <!-- License Uniqueness Information for Owner -->
+                <div class="srm-license-uniqueness" style="margin-top: 20px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                    <h4 style="margin: 0 0 10px 0; color: #856404;">🔒 License Uniqueness System</h4>
+                    <p style="margin: 5px 0; font-size: 14px;"><strong>How it works:</strong></p>
+                    <ul style="margin: 5px 0; padding-left: 20px; font-size: 14px;">
+                        <li>Each license key can only be activated on one website</li>
+                        <li>When a license is activated, it becomes bound to that installation</li>
+                        <li>If someone tries to use the same key on another site, it will be rejected</li>
+                        <li>When a license is deactivated, it becomes available for use elsewhere</li>
+                        <li>This ensures each buyer must purchase their own unique license</li>
+                    </ul>
+                    <p style="margin: 10px 0 0 0; font-size: 12px; color: #856404;"><em>This system prevents license sharing and ensures fair usage.</em></p>
                 </div>
             </div>
         <?php else: ?>
@@ -116,6 +147,18 @@ $license_key = $license_manager->get_license_key();
                 <p><strong><?php _e('Plugin Owner Key:', 'student-result-management'); ?></strong> <code>Bismillah^512</code></p>
                 <p><strong><?php _e('Premium User Keys:', 'student-result-management'); ?></strong> <?php _e('13-digit license keys provided by the plugin owner.', 'student-result-management'); ?></p>
                 <p><strong><?php _e('License Key Format:', 'student-result-management'); ?></strong> <?php _e('13 characters with specific character requirements at positions 1, 4, 8-10, and 13.', 'student-result-management'); ?></p>
+            </div>
+            
+            <!-- License Uniqueness Notice -->
+            <div class="notice notice-warning">
+                <h4 style="margin: 0 0 10px 0;">🔒 License Uniqueness</h4>
+                <p style="margin: 5px 0;"><strong>Important:</strong> Each license key can only be activated on one website.</p>
+                <ul style="margin: 5px 0; padding-left: 20px;">
+                    <li>If a license key is already in use on another website, activation will fail</li>
+                    <li>Each buyer must purchase their own unique license key</li>
+                    <li>License sharing between multiple websites is not allowed</li>
+                    <li>This ensures fair usage and prevents unauthorized sharing</li>
+                </ul>
             </div>
         <?php endif; ?>
         

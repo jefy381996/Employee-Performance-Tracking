@@ -86,7 +86,8 @@ class SRM_License_Manager {
         if (strpos($license_key, '.') !== false) {
             $parts = explode('.', $license_key);
             if (count($parts) >= 2) {
-                $domain_part = end($parts);
+                // Extract domain part (everything after the first dot)
+                $domain_part = implode('.', array_slice($parts, 1));
                 $current_domain = $this->get_current_domain();
                 
                 // Check if domain matches
@@ -141,7 +142,8 @@ class SRM_License_Manager {
         if (strpos($license_key, '.') !== false) {
             $parts = explode('.', $license_key);
             if (count($parts) >= 2) {
-                $domain_part = end($parts);
+                // Extract domain part (everything after the first dot)
+                $domain_part = implode('.', array_slice($parts, 1));
                 $current_domain = $this->get_current_domain();
                 
                 if ($domain_part !== $current_domain) {
@@ -361,7 +363,8 @@ class SRM_License_Manager {
         if (strpos($license_key, '.') !== false) {
             $parts = explode('.', $license_key);
             if (count($parts) >= 2) {
-                return end($parts);
+                // Return the domain part (everything after the first dot)
+                return implode('.', array_slice($parts, 1));
             }
         }
         

@@ -55,9 +55,6 @@ class StudentResultManagement {
         
         // Display contact notice on all admin pages
         add_action('admin_notices', array($this, 'display_contact_notice'));
-        add_action('admin_head', array($this, 'display_prominent_contact_notice'));
-        add_action('admin_footer', array($this, 'force_contact_notice'));
-        add_action('admin_init', array($this, 'inject_contact_notice'));
         
         // Shortcode for frontend result display
         add_shortcode('student_result_lookup', array($this, 'result_lookup_shortcode'));
@@ -790,214 +787,159 @@ class StudentResultManagement {
         
         $license_manager = new SRM_License_Manager();
         if (!$license_manager->has_premium_access()) {
-            echo '<div class="notice notice-info" style="margin: 20px 0; padding: 20px; background: #f0f8ff; border-left: 4px solid #0073aa; font-size: 16px; text-align: center;">';
-            echo '<h2 style="margin: 0 0 15px 0; color: #0073aa; font-size: 20px;">📞 Contact for Premium Version</h2>';
-            echo '<p style="margin: 0 0 10px 0; font-size: 16px;"><strong>To buy the full Version, Contact Jaffar Abbas:</strong></p>';
-            echo '<div style="display: flex; justify-content: center; gap: 30px; margin-top: 15px;">';
-            echo '<div style="text-align: center;"><strong>WhatsApp:</strong><br><a href="https://wa.me/923083430923" target="_blank" style="font-size: 18px; color: #0073aa;">+923083430923</a></div>';
-            echo '<div style="text-align: center;"><strong>Email:</strong><br><a href="mailto:jaffar381996152@gmail.com" style="font-size: 18px; color: #0073aa;">jaffar381996152@gmail.com</a></div>';
-            echo '</div>';
-            echo '</div>';
-        }
-    }
-    
-    /**
-     * Display prominent contact notice in admin header
-     */
-    public function display_prominent_contact_notice() {
-        // Only show on plugin admin pages
-        if (!isset($_GET['page']) || strpos($_GET['page'], 'srm-') === false) {
-            return;
-        }
-        
-        $license_manager = new SRM_License_Manager();
-        if (!$license_manager->has_premium_access()) {
-            echo '<style>
-            .srm-contact-banner {
-                position: fixed;
-                top: 32px;
-                left: 0;
-                right: 0;
-                background: linear-gradient(135deg, #0073aa 0%, #005a87 100%);
+            echo '<div class="srm-contact-banner" style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 color: white;
-                padding: 15px 20px;
+                padding: 25px 30px;
+                margin: 20px 0;
+                border-radius: 12px;
                 text-align: center;
-                z-index: 999999;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-                font-size: 16px;
-            }
-            .srm-contact-banner h2 {
-                margin: 0 0 10px 0;
-                font-size: 20px;
+                box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+                position: relative;
+                overflow: hidden;
+                border: none;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            ">';
+            
+            // Background pattern
+            echo '<div style="
+                position: absolute;
+                top: -50%;
+                right: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+                background-size: 20px 20px;
+                opacity: 0.3;
+                pointer-events: none;
+            "></div>';
+            
+            // Content
+            echo '<div style="position: relative; z-index: 2;">';
+            echo '<h2 style="
+                margin: 0 0 20px 0;
                 color: white;
-            }
-            .srm-contact-banner p {
-                margin: 0 0 10px 0;
-                font-size: 16px;
-            }
-            .srm-contact-banner .contact-links {
+                font-size: 28px;
+                font-weight: 700;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            ">📞 Contact for Premium Version</h2>';
+            
+            echo '<p style="
+                margin: 0 0 25px 0;
+                font-size: 18px;
+                font-weight: 500;
+                opacity: 0.95;
+            "><strong>To buy the full Version, Contact Jaffar Abbas:</strong></p>';
+            
+            echo '<div style="
                 display: flex;
                 justify-content: center;
-                gap: 30px;
-                margin-top: 10px;
-            }
-            .srm-contact-banner .contact-links a {
-                color: white;
-                text-decoration: none;
-                font-weight: bold;
-                padding: 8px 16px;
-                border: 2px solid white;
-                border-radius: 5px;
+                gap: 40px;
+                margin-top: 20px;
+                flex-wrap: wrap;
+            ">';
+            
+            // WhatsApp
+            echo '<div style="
+                text-align: center;
+                background: rgba(255,255,255,0.15);
+                padding: 15px 25px;
+                border-radius: 10px;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.2);
                 transition: all 0.3s ease;
-            }
-            .srm-contact-banner .contact-links a:hover {
-                background: white;
-                color: #0073aa;
-            }
-            .srm-contact-banner .close-banner {
-                position: absolute;
-                top: 10px;
-                right: 15px;
+            ">';
+            echo '<div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">📱 WhatsApp</div>';
+            echo '<a href="https://wa.me/923083430923" target="_blank" style="
+                font-size: 20px;
                 color: white;
                 text-decoration: none;
+                font-weight: 700;
+                display: block;
+                padding: 8px 0;
+                border-radius: 6px;
+                transition: all 0.3s ease;
+            ">+923083430923</a>';
+            echo '</div>';
+            
+            // Email
+            echo '<div style="
+                text-align: center;
+                background: rgba(255,255,255,0.15);
+                padding: 15px 25px;
+                border-radius: 10px;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.2);
+                transition: all 0.3s ease;
+            ">';
+            echo '<div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">📧 Email</div>';
+            echo '<a href="mailto:jaffar381996152@gmail.com" style="
+                font-size: 18px;
+                color: white;
+                text-decoration: none;
+                font-weight: 700;
+                display: block;
+                padding: 8px 0;
+                border-radius: 6px;
+                transition: all 0.3s ease;
+                word-break: break-all;
+            ">jaffar381996152@gmail.com</a>';
+            echo '</div>';
+            
+            echo '</div>';
+            
+            // Close button
+            echo '<button onclick="this.parentElement.style.display=\'none\'" style="
+                position: absolute;
+                top: 15px;
+                right: 20px;
+                background: rgba(255,255,255,0.2);
+                border: none;
+                color: white;
                 font-size: 20px;
                 font-weight: bold;
+                cursor: pointer;
+                padding: 5px 10px;
+                border-radius: 50%;
+                transition: all 0.3s ease;
+                z-index: 3;
+            " title="Close banner">×</button>';
+            
+            echo '</div>';
+            echo '</div>';
+            
+            // Add hover effects via CSS
+            echo '<style>
+            .srm-contact-banner:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+            }
+            .srm-contact-banner > div > div > div:hover {
+                background: rgba(255,255,255,0.25) !important;
+                transform: translateY(-2px);
+            }
+            .srm-contact-banner button:hover {
+                background: rgba(255,255,255,0.3) !important;
+            }
+            @media (max-width: 768px) {
+                .srm-contact-banner {
+                    padding: 20px 15px !important;
+                }
+                .srm-contact-banner h2 {
+                    font-size: 24px !important;
+                }
+                .srm-contact-banner > div > div {
+                    gap: 20px !important;
+                }
+                .srm-contact-banner > div > div > div {
+                    padding: 12px 15px !important;
+                }
             }
             </style>';
-            
-            echo '<div class="srm-contact-banner" id="srm-contact-banner">
-                <a href="#" class="close-banner" onclick="document.getElementById(\'srm-contact-banner\').style.display=\'none\';">×</a>
-                <h2>📞 Contact for Premium Version</h2>
-                <p><strong>To buy the full Version, Contact Jaffar Abbas:</strong></p>
-                <div class="contact-links">
-                    <a href="https://wa.me/923083430923" target="_blank">📱 WhatsApp: +923083430923</a>
-                    <a href="mailto:jaffar381996152@gmail.com">📧 Email: jaffar381996152@gmail.com</a>
-                </div>
-            </div>';
         }
     }
     
-    /**
-     * Inject contact notice directly into page content
-     */
-    public function inject_contact_notice() {
-        // Only show on plugin admin pages
-        if (!isset($_GET['page']) || strpos($_GET['page'], 'srm-') === false) {
-            return;
-        }
-        
-        $license_manager = new SRM_License_Manager();
-        if (!$license_manager->has_premium_access()) {
-            // Add CSS for the notice
-            add_action('admin_head', function() {
-                echo '<style>
-                .srm-injected-notice {
-                    background: linear-gradient(135deg, #0073aa 0%, #005a87 100%);
-                    color: white;
-                    padding: 20px;
-                    margin: 20px 0;
-                    border-radius: 8px;
-                    text-align: center;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                    position: relative;
-                    z-index: 999999;
-                }
-                .srm-injected-notice h2 {
-                    margin: 0 0 15px 0;
-                    font-size: 24px;
-                    color: white;
-                }
-                .srm-injected-notice p {
-                    margin: 0 0 15px 0;
-                    font-size: 18px;
-                }
-                .srm-injected-notice .contact-links {
-                    display: flex;
-                    justify-content: center;
-                    gap: 30px;
-                    margin-top: 20px;
-                }
-                .srm-injected-notice .contact-links a {
-                    color: white;
-                    text-decoration: none;
-                    font-weight: bold;
-                    padding: 12px 24px;
-                    border: 2px solid white;
-                    border-radius: 6px;
-                    transition: all 0.3s ease;
-                    font-size: 16px;
-                }
-                .srm-injected-notice .contact-links a:hover {
-                    background: white;
-                    color: #0073aa;
-                }
-                </style>';
-            });
-            
-            // Add JavaScript to inject the notice
-            add_action('admin_footer', function() {
-                echo '<script>
-                jQuery(document).ready(function($) {
-                    var contactNotice = \'<div class="srm-injected-notice">\' +
-                        \'<h2>📞 Contact for Premium Version</h2>\' +
-                        \'<p><strong>To buy the full Version, Contact Jaffar Abbas:</strong></p>\' +
-                        \'<div class="contact-links">\' +
-                        \'<a href="https://wa.me/923083430923" target="_blank">📱 WhatsApp: +923083430923</a>\' +
-                        \'<a href="mailto:jaffar381996152@gmail.com">📧 Email: jaffar381996152@gmail.com</a>\' +
-                        \'</div>\' +
-                        \'</div>\';
-                    
-                    // Insert at the very top of the page content
-                    if ($("#wpcontent").length) {
-                        $("#wpcontent").prepend(contactNotice);
-                    } else if ($(".wrap").length) {
-                        $(".wrap").prepend(contactNotice);
-                    } else if ($("#wpbody").length) {
-                        $("#wpbody").prepend(contactNotice);
-                    } else {
-                        $("body").prepend(contactNotice);
-                    }
-                });
-                </script>';
-            });
-        }
-    }
-    
-    /**
-     * Force contact notice display (guaranteed to show)
-     */
-    public function force_contact_notice() {
-        // Only show on plugin admin pages
-        if (!isset($_GET['page']) || strpos($_GET['page'], 'srm-') === false) {
-            return;
-        }
-        
-        $license_manager = new SRM_License_Manager();
-        if (!$license_manager->has_premium_access()) {
-            echo '<script>
-            jQuery(document).ready(function($) {
-                // Create and insert contact notice
-                var contactNotice = \'<div class="notice notice-info" style="margin: 20px 0; padding: 20px; background: #f0f8ff; border-left: 4px solid #0073aa; font-size: 16px; text-align: center; position: relative; z-index: 999999;">\' +
-                    \'<h2 style="margin: 0 0 15px 0; color: #0073aa; font-size: 20px;">📞 Contact for Premium Version</h2>\' +
-                    \'<p style="margin: 0 0 10px 0; font-size: 16px;"><strong>To buy the full Version, Contact Jaffar Abbas:</strong></p>\' +
-                    \'<div style="display: flex; justify-content: center; gap: 30px; margin-top: 15px;">\' +
-                    \'<div style="text-align: center;"><strong>WhatsApp:</strong><br><a href="https://wa.me/923083430923" target="_blank" style="font-size: 18px; color: #0073aa;">+923083430923</a></div>\' +
-                    \'<div style="text-align: center;"><strong>Email:</strong><br><a href="mailto:jaffar381996152@gmail.com" style="font-size: 18px; color: #0073aa;">jaffar381996152@gmail.com</a></div>\' +
-                    \'</div>\' +
-                    \'</div>\';
-                
-                // Insert at the top of the page content
-                if ($("#wpcontent").length) {
-                    $("#wpcontent").prepend(contactNotice);
-                } else if ($(".wrap").length) {
-                    $(".wrap").prepend(contactNotice);
-                } else {
-                    $("body").prepend(contactNotice);
-                }
-            });
-            </script>';
-        }
-    }
+
     
     /**
      * Display admin notices

@@ -334,7 +334,7 @@ class SRM_License_Manager {
         $domain_info = $this->get_domain_info();
         
         return array(
-            'key' => $license_key,
+            'key_present' => !empty($license_key),
             'status' => $license_status,
             'domain' => $domain_info['domain'],
             'has_file' => $this->has_license_file(),
@@ -453,7 +453,6 @@ class SRM_License_Manager {
             'activated_at' => $activated_at,
             'user_email' => $current_user->user_email,
             'user_name' => $current_user->display_name,
-            'license_key' => $license_key,
             'license_domain' => $this->get_license_domain()
         );
     }

@@ -98,7 +98,7 @@ function srm_create_backup() {
             'options' => array(
                 'srm_plugin_owner' => get_option('srm_plugin_owner'),
                 'srm_license_status' => get_option('srm_license_status'),
-                'srm_license_key' => get_option('srm_license_key'),
+                // License key excluded for security reasons
                 'srm_email_notifications_enabled' => get_option('srm_email_notifications_enabled'),
                 'srm_result_notification_enabled' => get_option('srm_result_notification_enabled'),
                 'srm_reminder_notification_enabled' => get_option('srm_reminder_notification_enabled'),

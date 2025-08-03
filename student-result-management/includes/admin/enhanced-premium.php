@@ -47,8 +47,8 @@ $license_key = $license_manager->get_license_key();
                     </p>
                 <?php endif; ?>
                 <?php if (!empty($license_key)): ?>
-                    <p><strong><?php _e('License Key:', 'student-result-management'); ?></strong> 
-                        <code><?php echo esc_html($license_key); ?></code>
+                    <p><strong><?php _e('License Status:', 'student-result-management'); ?></strong> 
+                        <?php _e('Active and verified', 'student-result-management'); ?>
                     </p>
                     
                     <?php 
@@ -156,8 +156,8 @@ $license_key = $license_manager->get_license_key();
                     </span>
                 </p>
                 <?php if (!$is_owner): ?>
-                    <p><strong><?php _e('License Key:', 'student-result-management'); ?></strong> 
-                        <code><?php echo esc_html($license_manager->get_license_key()); ?></code>
+                    <p><strong><?php _e('License Type:', 'student-result-management'); ?></strong> 
+                        <?php _e('Domain-bound Premium License', 'student-result-management'); ?>
                     </p>
                     <p><strong><?php _e('Bound Domain:', 'student-result-management'); ?></strong> 
                         <?php echo esc_html($license_manager->get_license_domain()); ?>
@@ -482,7 +482,7 @@ jQuery(document).ready(function($) {
                 nonce: $('#srm_license_nonce').val()
             },
             success: function(response) {
-                console.log('License activation response:', response);
+                console.log('License activation response:', response.success ? 'Success' : 'Failed');
                 if (response.success) {
                     alert('Success: ' + response.data);
                     location.reload();
@@ -509,7 +509,7 @@ jQuery(document).ready(function($) {
                     nonce: $('#srm_license_nonce').val()
                 },
                 success: function(response) {
-                    console.log('License deactivation response:', response);
+                    console.log('License deactivation response:', response.success ? 'Success' : 'Failed');
                     if (response.success) {
                         alert('Success: ' + response.data);
                         location.reload();
@@ -536,7 +536,7 @@ jQuery(document).ready(function($) {
                 nonce: $('#srm_license_nonce').val()
             },
             success: function(response) {
-                console.log('License status response:', response);
+                console.log('License status check:', response.success ? 'Success' : 'Failed');
                 if (response.success) {
                     var info = response.data;
                     var message = 'License Status: ' + info.status.toUpperCase() + '\n';
